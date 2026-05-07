@@ -2,6 +2,8 @@
 #include "Map.hpp"
 #include <string>
 
+// 변경 확인
+
 int main() {
     // Initialize ncurses
     initscr();
