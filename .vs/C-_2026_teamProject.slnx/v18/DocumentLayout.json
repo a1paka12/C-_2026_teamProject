@@ -5,6 +5,14 @@
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\user\\Desktop\\\uB300\uD559\uC790\uB8CC\\c\u002B\u002B\\C-_2026_teamProject\\src\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\user\\Desktop\\\uB300\uD559\uC790\uB8CC\\c\u002B\u002B\\C-_2026_teamProject\\include\\Map.hpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:include\\Map.hpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\user\\Desktop\\\uB300\uD559\uC790\uB8CC\\c\u002B\u002B\\C-_2026_teamProject\\src\\test.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\test.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
   "DocumentGroupContainers": [
@@ -14,28 +22,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 10,
           "Children": [
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "main.cpp",
-              "DocumentMoniker": "C:\\Users\\user\\Desktop\\\uB300\uD559\uC790\uB8CC\\c\u002B\u002B\\C-_2026_teamProject\\src\\main.cpp",
-              "RelativeDocumentMoniker": "src\\main.cpp",
-              "ToolTip": "C:\\Users\\user\\Desktop\\\uB300\uD559\uC790\uB8CC\\c\u002B\u002B\\C-_2026_teamProject\\src\\main.cpp",
-              "RelativeToolTip": "src\\main.cpp",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAOAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-05-07T07:50:59.862Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{c6f34f0d-7ae5-4f3a-be61-fe0c21ae9eb8}"
             },
             {
               "$type": "Bookmark",
@@ -64,6 +55,45 @@
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Map.hpp",
+              "DocumentMoniker": "C:\\Users\\user\\Desktop\\\uB300\uD559\uC790\uB8CC\\c\u002B\u002B\\C-_2026_teamProject\\include\\Map.hpp",
+              "RelativeDocumentMoniker": "include\\Map.hpp",
+              "ToolTip": "C:\\Users\\user\\Desktop\\\uB300\uD559\uC790\uB8CC\\c\u002B\u002B\\C-_2026_teamProject\\include\\Map.hpp",
+              "RelativeToolTip": "include\\Map.hpp",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-05-07T08:35:52.188Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "test.cpp",
+              "DocumentMoniker": "C:\\Users\\user\\Desktop\\\uB300\uD559\uC790\uB8CC\\c\u002B\u002B\\C-_2026_teamProject\\src\\test.cpp",
+              "RelativeDocumentMoniker": "src\\test.cpp",
+              "ToolTip": "C:\\Users\\user\\Desktop\\\uB300\uD559\uC790\uB8CC\\c\u002B\u002B\\C-_2026_teamProject\\src\\test.cpp",
+              "RelativeToolTip": "src\\test.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-05-07T08:28:43.05Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "main.cpp",
+              "DocumentMoniker": "C:\\Users\\user\\Desktop\\\uB300\uD559\uC790\uB8CC\\c\u002B\u002B\\C-_2026_teamProject\\src\\main.cpp",
+              "RelativeDocumentMoniker": "src\\main.cpp",
+              "ToolTip": "C:\\Users\\user\\Desktop\\\uB300\uD559\uC790\uB8CC\\c\u002B\u002B\\C-_2026_teamProject\\src\\main.cpp",
+              "RelativeToolTip": "src\\main.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-05-07T07:50:59.862Z",
+              "EditorCaption": ""
             }
           ]
         }

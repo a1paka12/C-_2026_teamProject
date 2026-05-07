@@ -1,8 +1,10 @@
 {
   "ExpandedNodes": [
     "",
+    "\\data",
+    "\\include",
     "\\src"
   ],
-  "SelectedNode": "\\src\\main.cpp",
+  "SelectedNode": "\\src\\Map.cpp",
   "PreviewInSolutionExplorer": false
 }

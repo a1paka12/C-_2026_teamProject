@@ -3,7 +3,7 @@
 #include <string>
 
 // 변경 확인
-// 혁주 확인
+// 혁주 확인1234
 
 int main() {
     // Initialize ncurses
