@@ -1,5 +1,6 @@
 #include <ncurses.h>
 #include "Map.hpp"
+#include "Gate.hpp"
 #include <string>
 
 // 변경 확인
@@ -18,15 +19,31 @@ int main() {
     std::string mapPath = "data/map1.txt";
     Map gameMap(mapPath);
 
+    GateManager gateManager(gameMap);
+    gateManager.spawnGates();
+
     gameMap.draw();
     mvprintw(gameMap.getHeight() + 1, 0, "Phase 1: Map Display (Stage 1)");
     mvprintw(gameMap.getHeight() + 2, 0, "Map File: %s", mapPath.c_str());
     mvprintw(gameMap.getHeight() + 3, 0, "Press 'q' to exit Phase 1...");
     refresh();
 
-    int ch;
-    while((ch = getch()) != 'q') {
-        // Wait for 'q'
+    // Gate 갱신을 위해 getch를 주기적으로(비차단) 호출
+    timeout(100); // ms
+
+    int ch = 0;
+    while (true) {
+        ch = getch();
+        if (ch == 'q') break;
+
+        if (gateManager.update()) {
+            clear();
+            gameMap.draw();
+            mvprintw(gameMap.getHeight() + 1, 0, "Phase 1: Map Display (Stage 1)");
+            mvprintw(gameMap.getHeight() + 2, 0, "Map File: %s", mapPath.c_str());
+            mvprintw(gameMap.getHeight() + 3, 0, "Press 'q' to exit Phase 1...");
+            refresh();
+        }
     }
 
     endwin();

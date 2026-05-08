@@ -42,11 +42,12 @@ void Map::validateAndResize() {
 void Map::draw() const {
     // Basic color setup (should be called in main, but we use it here)
     start_color();
-    init_pair(1, COLOR_WHITE, COLOR_BLACK);  // Default
-    init_pair(2, COLOR_BLUE, COLOR_BLUE);    // Wall
-    init_pair(3, COLOR_CYAN, COLOR_CYAN);    // Immune Wall
-    init_pair(4, COLOR_YELLOW, COLOR_BLACK); // Head
-    init_pair(5, COLOR_GREEN, COLOR_BLACK);  // Body
+    init_pair(1, COLOR_WHITE, COLOR_BLACK);    // Default
+    init_pair(2, COLOR_BLUE, COLOR_BLUE);      // Wall
+    init_pair(3, COLOR_CYAN, COLOR_CYAN);      // Immune Wall
+    init_pair(4, COLOR_YELLOW, COLOR_BLACK);   // Head
+    init_pair(5, COLOR_GREEN, COLOR_BLACK);    // Body
+    init_pair(6, COLOR_MAGENTA, COLOR_MAGENTA); // Gate
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
@@ -72,11 +73,17 @@ void Map::draw() const {
                     mvaddch(y, drawX + 1, ' '); // Space after head for square look
                     attroff(COLOR_PAIR(4) | A_BOLD);
                     break;
-                case 4: 
+                case 4:
                     attron(COLOR_PAIR(5));
-                    mvaddch(y, drawX, 'B'); 
-                    mvaddch(y, drawX + 1, ' '); // Space after body
+                    mvaddch(y, drawX, 'B');
+                    mvaddch(y, drawX + 1, ' ');
                     attroff(COLOR_PAIR(5));
+                    break;
+                case 7: // Gate
+                    attron(COLOR_PAIR(6));
+                    mvaddch(y, drawX, ' ');
+                    mvaddch(y, drawX + 1, ' ');
+                    attroff(COLOR_PAIR(6));
                     break;
                 default: 
                     mvaddch(y, drawX, ' '); 
