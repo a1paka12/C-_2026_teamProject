@@ -45,8 +45,8 @@ void Map::draw() const {
     init_pair(1, COLOR_WHITE, COLOR_BLACK);    // Default
     init_pair(2, COLOR_BLUE, COLOR_BLUE);      // Wall
     init_pair(3, COLOR_CYAN, COLOR_CYAN);      // Immune Wall
-    init_pair(4, COLOR_YELLOW, COLOR_BLACK);   // Head
-    init_pair(5, COLOR_GREEN, COLOR_BLACK);    // Body
+    init_pair(4, COLOR_YELLOW, COLOR_YELLOW);  // Head (배경을 노란색으로)
+    init_pair(5, COLOR_GREEN, COLOR_GREEN);    // Body (배경을 초록색으로)
     init_pair(6, COLOR_MAGENTA, COLOR_MAGENTA); // Gate
 
     for (int y = 0; y < height; ++y) {
@@ -68,14 +68,14 @@ void Map::draw() const {
                     attroff(COLOR_PAIR(3));
                     break;
                 case 3: 
-                    attron(COLOR_PAIR(4) | A_BOLD);
-                    mvaddch(y, drawX, 'H'); 
-                    mvaddch(y, drawX + 1, ' '); // Space after head for square look
-                    attroff(COLOR_PAIR(4) | A_BOLD);
+                    attron(COLOR_PAIR(4));
+                    mvaddch(y, drawX, ' '); 
+                    mvaddch(y, drawX + 1, ' '); 
+                    attroff(COLOR_PAIR(4));
                     break;
                 case 4:
                     attron(COLOR_PAIR(5));
-                    mvaddch(y, drawX, 'B');
+                    mvaddch(y, drawX, ' ');
                     mvaddch(y, drawX + 1, ' ');
                     attroff(COLOR_PAIR(5));
                     break;
