@@ -28,11 +28,11 @@ void Map::loadFromFile(const std::string& filePath) {
 }
 
 void Map::validateAndResize() {
-    int targetSize = 25; // User requested 25x25
+    int targetSize = 25; // 25x25
 
-    if (height < targetSize) data.resize(targetSize, std::vector<int>(width, 0));
+    if (height < targetSize) data.resize(targetSize, std::vector<int>(width, 9));
     for (int i = 0; i < (int)data.size(); ++i) {
-        if ((int)data[i].size() < targetSize) data[i].resize(targetSize, 0);
+        if ((int)data[i].size() < targetSize) data[i].resize(targetSize, 9);
     }
 
     height = data.size();
@@ -40,19 +40,21 @@ void Map::validateAndResize() {
 }
 
 void Map::draw() const {
-    // Basic color setup (should be called in main, but we use it here)
+    // 기본 색상 설정
     start_color();
     init_pair(1, COLOR_WHITE, COLOR_BLACK);    // Default
     init_pair(2, COLOR_BLUE, COLOR_BLUE);      // Wall
     init_pair(3, COLOR_CYAN, COLOR_CYAN);      // Immune Wall
     init_pair(4, COLOR_YELLOW, COLOR_YELLOW);  // Head (배경을 노란색으로)
-    init_pair(5, COLOR_GREEN, COLOR_GREEN);    // Body (배경을 초록색으로)
+    init_pair(5, COLOR_WHITE, COLOR_WHITE);    // Body (배경을 하얀색으로)
     init_pair(6, COLOR_MAGENTA, COLOR_MAGENTA); // Gate
+    init_pair(7, COLOR_GREEN, COLOR_GREEN);    // Growth Item
+    init_pair(8, COLOR_RED, COLOR_RED);      // Poison Item
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             int val = data[y][x];
-            int drawX = x * 2; // Double the horizontal coordinate
+            int drawX = x * 2; // 가로 비율을 맞추기 위해 x좌표 2배
             
             switch (val) {
                 case 1: 
@@ -78,6 +80,18 @@ void Map::draw() const {
                     mvaddch(y, drawX, ' ');
                     mvaddch(y, drawX + 1, ' ');
                     attroff(COLOR_PAIR(5));
+                    break;
+                case 5: // Growth Item
+                    attron(COLOR_PAIR(7));
+                    mvaddch(y, drawX, ' ');
+                    mvaddch(y, drawX + 1, ' ');
+                    attroff(COLOR_PAIR(7));
+                    break;
+                case 6: // Poison Item
+                    attron(COLOR_PAIR(8));
+                    mvaddch(y, drawX, ' ');
+                    mvaddch(y, drawX + 1, ' ');
+                    attroff(COLOR_PAIR(8));
                     break;
                 case 7: // Gate
                     attron(COLOR_PAIR(6));

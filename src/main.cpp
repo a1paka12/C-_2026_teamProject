@@ -1,29 +1,29 @@
 #include <ncurses.h>
 #include "Map.hpp"
 #include "Gate.hpp"
-#include "Snake.hpp"
+#include "Item.hpp"
+#include "ItemSnake.hpp"
 #include <string>
 
-// 변경 확인
-// 혁주 확인1234
-
 int main() {
-    // Initialize ncurses
+    // ncurses 초기화
     initscr();
     start_color();
     noecho();
     curs_set(0); 
     keypad(stdscr, TRUE);
 
-    // Milestone 1 Requirement: Display map from 2D array (loaded from file)
-    // Starting with Stage 1 (Map 1)
+    // 1단계 요구사항: 2차원 배열에서 맵 표시 (파일에서 로드)
+    // 스테이지 1 (Map 1) 시작
     std::string mapPath = "data/map1.txt";
     Map gameMap(mapPath);
 
-    Snake snake(gameMap);
+    ItemSnake snake(gameMap);
 
     GateManager gateManager(gameMap);
     gateManager.spawnGates();
+
+    ItemManager itemManager(gameMap);
 
     gameMap.draw();
     mvprintw(gameMap.getHeight() + 1, 0, "Phase 1: Map Display (Stage 1)");
@@ -52,6 +52,11 @@ int main() {
             }
         }
 
+        // 아이템 매니저 업데이트 (시간 체크) - 1틱마다 체크
+        if (itemManager.update(gameMap)) {
+            redraw = true;
+        }
+
         // 게이트 매니저 업데이트 (시간 체크)
         if (gateManager.update()) {
             redraw = true;
@@ -60,9 +65,19 @@ int main() {
         // 3틱(300ms)마다 뱀 1칸 이동
         tick++;
         if (tick % 3 == 0) {
-            if (!snake.move(gameMap)) {
+            int moveResult = snake.move(gameMap);
+            if (moveResult == -1) {
                 gameOver = true;
                 break;
+            }else if (moveResult == 5 || moveResult == 6) {
+                // 아이템을 먹었으므로, 현재 머리 위치의 아이템을 리스트에서 제거
+                // 머리 좌표가 필요하지만, ItemManager 내부에서 위치 비교로 지우도록 할 수 있도록
+                // 여기서는 Map 배열에 이미 머리(3)가 덮어씌워졌으므로 아이템 자체는 Map에서 사라진 상태.
+                // 다만 ItemManager 내부 리스트에서도 지우려면 Snake의 현재 머리 좌표를 가져와야 함.
+                // 그러나 편의상 다음 update()에서 맵 데이터 불일치(5/6 아님)로 알아서 제거될 수 있음.
+                // 좀 더 안전하게 명시적으로 지우려면 Snake에서 좌표를 반환받아야 하지만, 
+                // ItemManager::update에서 `if (map.getCell(y,x) != type) erase` 하는 로직이 이미 있다면 처리됨.
+                // (현재 ItemManager.cpp 에 관련 로직을 작성했음)
             }
             redraw = true;
         }

@@ -17,11 +17,12 @@ public:
 
     // 현재 방향으로 뱀을 1칸 이동시키고 맵 데이터를 갱신합니다.
     // 벽이나 자신의 몸에 부딪혀 죽은 경우 false를 반환합니다.
-    bool move(Map& map);
+    // (수정) Phase 3: ItemSnake 클래스에서 아이템 획득 로직을 오버라이딩하기 위해 virtual 및 반환형(int) 추가
+    virtual int move(Map& map);
 
     bool isAlive() const { return alive; }
-
-private:
+// (수정) Phase 3: 상속받은 ItemSnake 클래스에서 변수에 접근할 수 있도록 private에서 protected로 변경
+protected:
     std::deque<std::pair<int, int>> body; // 뱀의 좌표들 (front가 머리, back이 꼬리)
     Direction currentDir;
     bool alive;

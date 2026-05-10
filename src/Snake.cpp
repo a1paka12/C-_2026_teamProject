@@ -79,9 +79,10 @@ bool Snake::updateDirection(int ch) {
     }
     return true;
 }
-
-bool Snake::move(Map& map) {
-    if (!alive) return false;
+// (수정) Phase 3: 자식 클래스(ItemSnake)와 반환형을 맞추고, 아이템 상태값을 구별하기 위해 
+// 기존 bool 반환형을 int(-1: 사망, 0: 정상 이동)로 변경.
+int Snake::move(Map& map) {
+    if (!alive) return -1;
     
     int headY = body.front().first;
     int headX = body.front().second;
@@ -101,11 +102,11 @@ bool Snake::move(Map& map) {
     // 꼬리 위치는 이번 턴에 이동하면서 사라지므로 닿아도 죽지 않도록 예외처리
     if (nextCell == 1 || nextCell == 2) {
         alive = false;
-        return false;
+        return -1;
     }
     if (nextCell == 4 && (nextY != body.back().first || nextX != body.back().second)) {
         alive = false;
-        return false;
+        return -1;
     }
     
     // 머리 이동 처리
@@ -121,5 +122,5 @@ bool Snake::move(Map& map) {
     map.setCell(tailY, tailX, 0); // 맵에서 지움
     body.pop_back(); // 덱에서 제거
     
-    return true;
+    return 0;
 }
