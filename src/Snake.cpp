@@ -1,4 +1,5 @@
 #include "Snake.hpp"
+#include "Gate.hpp"
 #include <ncurses.h>
 #include <vector>
 #include <cmath>
@@ -81,7 +82,7 @@ bool Snake::updateDirection(int ch) {
 }
 // (수정) Phase 3: 자식 클래스(ItemSnake)와 반환형을 맞추고, 아이템 상태값을 구별하기 위해 
 // 기존 bool 반환형을 int(-1: 사망, 0: 정상 이동)로 변경.
-int Snake::move(Map& map) {
+int Snake::move(Map& map, GateManager& gateManager) {
     if (!alive) return -1;
     
     int headY = body.front().first;
@@ -97,10 +98,47 @@ int Snake::move(Map& map) {
     
     // 다음 칸이 무엇인지 확인
     int nextCell = map.getCell(nextY, nextX);
+
+    // 맵 밖(-1)은 이동 불가(벽으로 취급)
+    if (nextCell == -1) {
+        alive = false;
+        return -1;
+    }
+
+    // Gate(7): 반대편 Gate 밖으로 순간이동 (통과 중에는 GateManager가 재생성하지 않음)
+    if (nextCell == CELL_GATE) {
+        int outY = 0, outX = 0;
+        Direction outDir = currentDir;
+        if (!gateManager.checkGateCollision(nextY, nextX, currentDir, outY, outX, outDir)) {
+            alive = false;
+            return -1;
+        }
+
+        // Gate 출구가 유효 범위를 벗어나면 즉사(방향 계산/맵 상태 이상 방지)
+        if (outY < 0 || outY >= map.getHeight() || outX < 0 || outX >= map.getWidth()) {
+            alive = false;
+            return -1;
+        }
+
+        gateManager.beginGatePassage(static_cast<int>(body.size()));
+
+        int tailY = body.back().first;
+        int tailX = body.back().second;
+        map.setCell(tailY, tailX, 0);
+        body.pop_back();
+
+        map.setCell(headY, headX, 4);
+
+        body.push_front({outY, outX});
+        map.setCell(outY, outX, 3);
+        currentDir = outDir;
+        return 0;
+    }
     
     // 벽(1, 2)이거나 꼬리를 제외한 자신의 몸통(4)에 닿으면 즉사
     // 꼬리 위치는 이번 턴에 이동하면서 사라지므로 닿아도 죽지 않도록 예외처리
-    if (nextCell == 1 || nextCell == 2) {
+    // 9는 맵 확장 패딩(비플레이); 벽처럼 막음
+    if (nextCell == 1 || nextCell == 2 || nextCell == 9) {
         alive = false;
         return -1;
     }

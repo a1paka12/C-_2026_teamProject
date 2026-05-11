@@ -42,6 +42,10 @@ void Map::validateAndResize() {
 void Map::draw() const {
     // 기본 색상 설정
     start_color();
+    // Gate용 자색을 기본값보다 약간 진하게 (터미널이 init_color 지원할 때만)
+    if (can_change_color()) {
+        init_color(COLOR_MAGENTA, 520, 100, 520); // ncurses 스케일 0–1000
+    }
     init_pair(1, COLOR_WHITE, COLOR_BLACK);    // Default
     init_pair(2, COLOR_BLUE, COLOR_BLUE);      // Wall
     init_pair(3, COLOR_CYAN, COLOR_CYAN);      // Immune Wall

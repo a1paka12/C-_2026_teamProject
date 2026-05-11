@@ -9,7 +9,7 @@ public:
     ItemSnake(Map& map) : Snake(map) {}
 
     // 부모의 이동 로직을 오버라이딩하여 아이템 처리 로직을 추가.
-    int move(Map& map) override;
+    int move(Map& map, GateManager& gateManager) override;
 };
 
 #endif

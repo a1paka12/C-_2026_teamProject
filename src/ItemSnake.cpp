@@ -1,6 +1,7 @@
 #include "ItemSnake.hpp"
+#include "Gate.hpp"
 
-int ItemSnake::move(Map& map) {
+int ItemSnake::move(Map& map, GateManager& gateManager) {
     if (!alive) return -1;
     
     // 다음 이동할 좌표를 미리 계산하여 아이템 여부만 먼저 확인.
@@ -13,6 +14,11 @@ int ItemSnake::move(Map& map) {
     else if (currentDir == RIGHT) nextX++;
     
     int nextCell = map.getCell(nextY, nextX);
+
+    // Gate(7): 부모의 순간이동 처리 (아이템보다 우선)
+    if (nextCell == CELL_GATE) {
+        return Snake::move(map, gateManager);
+    }
     
     // 1. Growth Item (5)인 경우
     if (nextCell == 5) {
@@ -20,7 +26,7 @@ int ItemSnake::move(Map& map) {
         std::pair<int, int> oldTail = body.back();
         
         // 부모의 기본 이동 로직 수행 (머리 전진, 꼬리 1개 제거됨)
-        int result = Snake::move(map);
+        int result = Snake::move(map, gateManager);
         if (result == -1) return -1;
         
         // 잘렸던 꼬리를 다시 복구하여 길이를 늘림.
@@ -32,7 +38,7 @@ int ItemSnake::move(Map& map) {
     // 2. Poison Item (6)인 경우
     else if (nextCell == 6) {
         // 부모의 기본 이동 로직 수행 (머리 전진, 꼬리 1개 제거됨)
-        int result = Snake::move(map);
+        int result = Snake::move(map, gateManager);
         if (result == -1) return -1;
         
         // 독을 먹었으므로 꼬리를 한 개 더 자릅니다 (총 2개 감소)
@@ -50,5 +56,5 @@ int ItemSnake::move(Map& map) {
     }
     
     // 3. 아이템이 없는 빈칸 이동의 경우 부모 로직 그대로 사용
-    return Snake::move(map);
+    return Snake::move(map, gateManager);
 }

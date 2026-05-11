@@ -46,6 +46,18 @@ public:
     bool checkGateCollision(int headY, int headX, Direction enterDir,
                             int& outY, int& outX, Direction& outDir) const;
 
+    // Gate 순간이동 직전에 호출 (snake 길이만큼 이동이 끝날 때까지 통과 구간으로 본다)
+    void beginGatePassage(int snakeSegmentCount);
+
+    // 뱀이 실제로 1칸 이동을 마칠 때마다 호출 (통과 구간 종료 시 20초 타이머 보정)
+    void afterSnakeMove();
+
+    bool isPassageActive() const { return passageActive; }
+
+    // Gate 재생성(20초) 직전 카운트다운 표시용.
+    // 반환값: 3/2/1 (남은 초), 그 외(표시 안 함)는 0.
+    int respawnCountdown() const;
+
     GatePos getGate1() const { return gate1; }
     GatePos getGate2() const { return gate2; }
 
@@ -57,6 +69,11 @@ private:
 
     std::chrono::steady_clock::time_point lastSpawn;
     static constexpr std::chrono::seconds RESPAWN_INTERVAL{20};
+
+    // Gate 통과 중: 재생성 금지, 경과 시간은 타이머에서 제외
+    bool passageActive;
+    std::chrono::steady_clock::time_point passagePauseStart;
+    int passageMovesLeft;
 
     // pos가 벽의 어느 면에 붙어 있는지 판단해 진출 방향을 결정
     Direction exitDirection(const GatePos& gatePos, Direction enterDir) const;
