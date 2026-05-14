@@ -12,7 +12,8 @@ public:
     // (5단계 ScoreBoard에서 추가) 스테이지 전환 시 같은 인스턴스에 새 맵 파일을 다시 로드
     void resetFromFile(const std::string& filePath);
     
-    void draw() const;
+    // boundaryRedBlinkPhase: 경계 빨간 벽(CELL_RED_WALL_CHARGE) 깜빡임 패턴용 0/1
+    void draw(int boundaryRedBlinkPhase = 0) const;
     void setCell(int y, int x, int value);
     int getCell(int y, int x) const;
     

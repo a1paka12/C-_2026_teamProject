@@ -10,6 +10,7 @@
 #include "ItemSnake.hpp"
 #include "Snake.hpp"
 #include "ScoreBoard.hpp"
+#include "RedWallProjectile.hpp"
 
 // 스테이지별 맵 파일 경로 (Stage 1~4)
 namespace {
@@ -44,6 +45,7 @@ int main() {
     gateManager.spawnGates();
 
     ItemManager itemManager(gameMap);
+    RedWallProjectileManager redWall(gameMap);
 
     // Score Board 초기화 (Stage 1, 초기 뱀 길이 설정)
     ScoreBoard scoreBoard;
@@ -53,11 +55,35 @@ int main() {
     // Score Board 시작 열 위치: 맵 가로 크기(셀 * 2칸) + 여백 2칸
     const int scoreCol = gameMap.getWidth() * 2 + 2;
 
-    // 화면 전체를 다시 그리는 람다 함수 (맵 + Score Board)
+    // 화면 전체를 다시 그리는 람다 함수 (맵 + Score Board + Gate 교체 카운트다운)
     auto paintUi = [&]() {
         clear();
-        gameMap.draw();
-        scoreBoard.draw(scoreCol, 0);
+        gameMap.draw(redWall.mapDrawBlinkPhase());
+        redWall.drawOverlay();
+        const int gateCd = gateManager.respawnCountdown();
+        scoreBoard.draw(scoreCol, 0, gateCd);
+        // Gate 타일 2칸 폭에 노란 배경+굵은 숫자 (자색/자색 페어는 숫자가 안 보임)
+        if (gateCd > 0) {
+            GatePos g1 = gateManager.getGate1();
+            GatePos g2 = gateManager.getGate2();
+            const int drawX1 = g1.x * 2;
+            const int drawX2 = g2.x * 2;
+            const chtype num = static_cast<chtype>('0' + gateCd);
+            if (has_colors()) {
+                attron(COLOR_PAIR(12) | A_BOLD);
+            } else {
+                attron(A_STANDOUT | A_BOLD);
+            }
+            mvaddch(g1.y, drawX1, num);
+            mvaddch(g1.y, drawX1 + 1, num);
+            mvaddch(g2.y, drawX2, num);
+            mvaddch(g2.y, drawX2 + 1, num);
+            if (has_colors()) {
+                attroff(COLOR_PAIR(12) | A_BOLD);
+            } else {
+                attroff(A_STANDOUT | A_BOLD);
+            }
+        }
         refresh();
     };
 
@@ -70,7 +96,7 @@ int main() {
     int ch = 0;
     int tick = 0;
     bool gameOver = false;
-    int lastCountdown = 0;
+    int lastGateCd = -1;
     int lastPaintedSecond = -1;
 
     // ── 메인 게임 루프 ──
@@ -104,8 +130,10 @@ int main() {
         }
 
         // 3틱(300ms)마다 뱀을 1칸 이동시킨다.
+        bool snakeStep = false;
         tick++;
         if (tick % 3 == 0) {
+            snakeStep = true;
             // Gate 통과 여부를 감지하기 위해 이동 전 상태를 저장
             bool wasPassage = gateManager.isPassageActive();
             int moveResult = snake->move(gameMap, gateManager);
@@ -138,7 +166,8 @@ int main() {
 
                 // 화면에 맵 + Score Board + 클리어 팝업을 출력
                 clear();
-                gameMap.draw();
+                gameMap.draw(redWall.mapDrawBlinkPhase());
+                redWall.drawOverlay();
                 scoreBoard.draw(scoreCol, 0);
                 scoreBoard.drawClearPopup(gameMap.getWidth(), gameMap.getHeight(), isFinal);
                 refresh();
@@ -167,6 +196,7 @@ int main() {
                 itemManager.resetForNewMap(gameMap);
                 snake = std::make_unique<ItemSnake>(gameMap);
                 gateManager.spawnGates();
+                redWall.resetForNewMap(gameMap);
 
                 // Score Board를 다음 스테이지 목표로 갱신
                 scoreBoard.setStage(nextStage);
@@ -179,6 +209,22 @@ int main() {
             }
         }
 
+        const auto redWallResult = redWall.update(gameMap, *snake, snakeStep);
+        if (redWallResult.gameOver) {
+            gameOver = true;
+            break;
+        }
+        if (redWallResult.needsRedraw) {
+            redraw = true;
+            scoreBoard.updateLength(snake->getLength());
+        }
+
+        // Gate 교체 카운트(1~3)가 바뀌면 반드시 다시 그림 (초 단위 게임 타이머와 어긋나도 표시 유지)
+        const int gateCd = gateManager.respawnCountdown();
+        if (gateCd != lastGateCd) {
+            redraw = true;
+        }
+
         // 맵/뱀 변화 또는 시간 변화가 있을 때만 화면을 다시 그린다.
         const bool timeTick = (elapsedSec != lastPaintedSecond);
         if (redraw || timeTick) {
@@ -186,37 +232,14 @@ int main() {
             paintUi();
         }
 
-        // ── Gate 재생성 카운트다운 표시 (3/2/1초) ──
-        int cd = gateManager.respawnCountdown();
-        if (cd != lastCountdown) {
-            if (lastCountdown != 0 && cd == 0) {
-                paintUi();
-            }
-
-            // Gate 위치에 남은 초를 숫자로 표시
-            if (cd != 0) {
-                GatePos g1 = gateManager.getGate1();
-                GatePos g2 = gateManager.getGate2();
-                int drawX1 = g1.x * 2;
-                int drawX2 = g2.x * 2;
-
-                attron(COLOR_PAIR(6) | A_BOLD);
-                mvaddch(g1.y, drawX1, '0' + cd);
-                mvaddch(g1.y, drawX1 + 1, ' ');
-                mvaddch(g2.y, drawX2, '0' + cd);
-                mvaddch(g2.y, drawX2 + 1, ' ');
-                attroff(COLOR_PAIR(6) | A_BOLD);
-            }
-
-            refresh();
-            lastCountdown = cd;
-        }
+        lastGateCd = gateCd;
     }
 
     // ── 게임 오버 처리 (빨간색 팝업) ──
     if (gameOver) {
         clear();
-        gameMap.draw();
+        gameMap.draw(redWall.mapDrawBlinkPhase());
+        redWall.drawOverlay();
         scoreBoard.draw(scoreCol, 0);
         scoreBoard.drawGameOverPopup(gameMap.getWidth(), gameMap.getHeight());
         refresh();

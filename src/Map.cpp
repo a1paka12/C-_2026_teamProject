@@ -1,4 +1,5 @@
 #include "Map.hpp"
+#include "RedWallProjectile.hpp"
 #include <fstream>
 #include <iostream>
 #include <algorithm>
@@ -48,7 +49,7 @@ void Map::validateAndResize() {
     width = data[0].size();
 }
 
-void Map::draw() const {
+void Map::draw(int boundaryRedBlinkPhase) const {
     // 기본 색상 설정
     start_color();
     // Gate용 자색을 기본값보다 약간 진하게 (터미널이 init_color 지원할 때만)
@@ -63,6 +64,8 @@ void Map::draw() const {
     init_pair(6, COLOR_MAGENTA, COLOR_MAGENTA); // Gate
     init_pair(7, COLOR_GREEN, COLOR_GREEN);    // Growth Item
     init_pair(8, COLOR_RED, COLOR_RED);      // Poison Item
+    // Gate 재생성 카운트다운: 검정 글자 + 노란 배경 (저해상도/원격 화면에서도 식별 가능)
+    init_pair(12, COLOR_BLACK, COLOR_YELLOW);
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
@@ -111,6 +114,19 @@ void Map::draw() const {
                     mvaddch(y, drawX, ' ');
                     mvaddch(y, drawX + 1, ' ');
                     attroff(COLOR_PAIR(6));
+                    break;
+                case CELL_RED_WALL_CHARGE: // 경계 빨간 벽 경고(충전)
+                    if ((boundaryRedBlinkPhase % 2) == 0) {
+                        attron(COLOR_PAIR(8));
+                        mvaddch(y, drawX, ' ');
+                        mvaddch(y, drawX + 1, ' ');
+                        attroff(COLOR_PAIR(8));
+                    } else {
+                        attron(COLOR_PAIR(2));
+                        mvaddch(y, drawX, ' ');
+                        mvaddch(y, drawX + 1, ' ');
+                        attroff(COLOR_PAIR(2));
+                    }
                     break;
                 default: 
                     mvaddch(y, drawX, ' '); 

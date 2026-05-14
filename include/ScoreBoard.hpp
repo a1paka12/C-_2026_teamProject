@@ -46,7 +46,8 @@ public:
 
     // ncurses를 이용해 Score Board를 화면에 출력한다.
     // originCol: 패널 시작 열 (맵 오른쪽), originRow: 패널 시작 행
-    void draw(int originCol, int originRow) const;
+    // gateRespawnCountdown: Gate 위치 교체 직전 남은 초(1~3)일 때 경고 한 줄 표시, 0이면 생략
+    void draw(int originCol, int originRow, int gateRespawnCountdown = 0) const;
 
     // 스테이지 클리어 시 화면 중앙에 초록색 결과 팝업을 출력한다.
     // isFinalStage가 true이면 "ALL STAGES CLEAR" 메시지를 출력한다.

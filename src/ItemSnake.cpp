@@ -2,6 +2,22 @@
 #include "Gate.hpp"
 #include "Snake.hpp"  // (5단계 ScoreBoard에서 추가) SNAKE_MOVE_* 상수 사용을 위해 포함
 
+bool ItemSnake::applyRedWallHit(Map& map) {
+    if (!alive) return false;
+
+    if (static_cast<int>(body.size()) <= 3) {
+        alive = false;
+        return false;
+    }
+
+    for (int i = 0; i < 3; ++i) {
+        const auto tail = body.back();
+        map.setCell(tail.first, tail.second, 0);
+        body.pop_back();
+    }
+    return true;
+}
+
 int ItemSnake::move(Map& map, GateManager& gateManager) {
     if (!alive) return -1;
     

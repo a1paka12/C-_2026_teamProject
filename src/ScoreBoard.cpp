@@ -125,7 +125,7 @@ bool ScoreBoard::isMissionClear() const {
 // 달성한 항목은 초록색 + 굵게(Bold)로 강조하고, [V]를 표시한다.
 // 모든 미션 달성 시 하단에 "*** MISSION CLEAR ***" 메시지를 출력한다.
 // ---------------------------------------------------------------
-void ScoreBoard::draw(int originCol, int originRow) const {
+void ScoreBoard::draw(int originCol, int originRow, int gateRespawnCountdown) const {
     const bool useColor = has_colors();
 
     // 색상 쌍 설정: 9=초록(달성), 10=흰색(기본), 11=노랑(시간)
@@ -159,6 +159,18 @@ void ScoreBoard::draw(int originCol, int originRow) const {
     if (useColor) attron(COLOR_PAIR(11));
     mvprintw(y++, x, "| %-36s |", tbuf);
     if (useColor) attroff(COLOR_PAIR(11));
+
+    // Gate 20초 주기 교체 직전(남은 1~3초): 우측 패널에 고대비 경고 (맵 위 숫자와 병행)
+    if (gateRespawnCountdown > 0) {
+        char wbuf[40];
+        std::snprintf(wbuf, sizeof(wbuf), ">> GATE %ds <<", gateRespawnCountdown);
+        if (useColor) {
+            init_pair(12, COLOR_BLACK, COLOR_YELLOW);
+            attron(COLOR_PAIR(12) | A_BOLD);
+        }
+        mvprintw(y++, x, "| %-36s |", wbuf);
+        if (useColor) attroff(COLOR_PAIR(12) | A_BOLD);
+    }
 
     // 조작키 안내 및 구분선
     mvprintw(y++, x, "| Control: Arrow Keys        Quit: Q   |");
