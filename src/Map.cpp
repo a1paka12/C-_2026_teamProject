@@ -56,16 +56,16 @@ void Map::draw(int boundaryRedBlinkPhase) const {
     if (can_change_color()) {
         init_color(COLOR_MAGENTA, 520, 100, 520); // ncurses 스케일 0–1000
     }
-    init_pair(1, COLOR_WHITE, COLOR_BLACK);    // Default
-    init_pair(2, COLOR_BLUE, COLOR_BLUE);      // Wall
-    init_pair(3, COLOR_CYAN, COLOR_CYAN);      // Immune Wall
-    init_pair(4, COLOR_YELLOW, COLOR_YELLOW);  // Head (배경을 노란색으로)
-    init_pair(5, COLOR_WHITE, COLOR_WHITE);    // Body (배경을 하얀색으로)
-    init_pair(6, COLOR_MAGENTA, COLOR_MAGENTA); // Gate
-    init_pair(7, COLOR_GREEN, COLOR_GREEN);    // Growth Item
-    init_pair(8, COLOR_RED, COLOR_RED);      // Poison Item
-    // Gate 재생성 카운트다운: 검정 글자 + 노란 배경 (저해상도/원격 화면에서도 식별 가능)
-    init_pair(12, COLOR_BLACK, COLOR_YELLOW);
+    init_pair(1, COLOR_WHITE, COLOR_BLACK);    // 기본
+    init_pair(2, COLOR_BLUE, COLOR_BLUE);      // 벽
+    init_pair(3, COLOR_CYAN, COLOR_CYAN);      // 통과 불가능한 벽 (Immune Wall)
+    init_pair(4, COLOR_YELLOW, COLOR_YELLOW);  // 머리 (배경을 노란색으로)
+    init_pair(5, COLOR_WHITE, COLOR_WHITE);    // 몸통 (배경을 하얀색으로)
+    init_pair(6, COLOR_MAGENTA, COLOR_MAGENTA); // 게이트
+    init_pair(7, COLOR_GREEN, COLOR_GREEN);    // Growth 아이템
+    init_pair(8, COLOR_RED, COLOR_RED);      // Poison 아이템
+    init_pair(13, COLOR_CYAN, COLOR_CYAN);   // 무적 아이템 (밝은 하늘색)
+    init_pair(14, COLOR_WHITE, COLOR_BLUE);   // 미스터리 아이템 (파란 배경에 흰 글씨)
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
@@ -97,19 +97,31 @@ void Map::draw(int boundaryRedBlinkPhase) const {
                     mvaddch(y, drawX + 1, ' ');
                     attroff(COLOR_PAIR(5));
                     break;
-                case 5: // Growth Item
+                case 5: // Growth 아이템
                     attron(COLOR_PAIR(7));
                     mvaddch(y, drawX, ' ');
                     mvaddch(y, drawX + 1, ' ');
                     attroff(COLOR_PAIR(7));
                     break;
-                case 6: // Poison Item
+                case 6: // Poison 아이템
                     attron(COLOR_PAIR(8));
                     mvaddch(y, drawX, ' ');
                     mvaddch(y, drawX + 1, ' ');
                     attroff(COLOR_PAIR(8));
                     break;
-                case 7: // Gate
+                case 11: // 무적 아이템
+                    attron(COLOR_PAIR(13));
+                    mvaddch(y, drawX, ' ');
+                    mvaddch(y, drawX + 1, ' ');
+                    attroff(COLOR_PAIR(13));
+                    break;
+                case 12: // 미스터리 아이템
+                    attron(COLOR_PAIR(14));
+                    mvaddch(y, drawX, '?');
+                    mvaddch(y, drawX + 1, ' ');
+                    attroff(COLOR_PAIR(14));
+                    break;
+                case 7: // 게이트
                     attron(COLOR_PAIR(6));
                     mvaddch(y, drawX, ' ');
                     mvaddch(y, drawX + 1, ' ');

@@ -1,9 +1,11 @@
 #include "ItemSnake.hpp"
 #include "Gate.hpp"
 #include "Snake.hpp"  // (5단계 ScoreBoard에서 추가) SNAKE_MOVE_* 상수 사용을 위해 포함
+#include <cstdlib>
 
 bool ItemSnake::applyRedWallHit(Map& map) {
     if (!alive) return false;
+    if (invincibleTicks > 0) return true; // 무적 상태면 통과 (데미지 없음)
 
     if (static_cast<int>(body.size()) <= 3) {
         alive = false;
@@ -11,11 +13,22 @@ bool ItemSnake::applyRedWallHit(Map& map) {
     }
 
     for (int i = 0; i < 3; ++i) {
+        if (body.size() <= 1) break; // 머리는 남겨둠
         const auto tail = body.back();
         map.setCell(tail.first, tail.second, 0);
         body.pop_back();
     }
     return true;
+}
+
+bool ItemSnake::updateDirection(int ch) {
+    Direction oldDir = currentDir;
+    bool result = Snake::updateDirection(ch);
+    if (result && isStopped && currentDir != oldDir) {
+        // 무적 상태에서 벽에 막혔을 때, 진행 방향과 다른 방향으로 꺾으면 다시 움직임
+        isStopped = false;
+    }
+    return result;
 }
 
 int ItemSnake::move(Map& map, GateManager& gateManager) {
@@ -32,6 +45,15 @@ int ItemSnake::move(Map& map, GateManager& gateManager) {
     
     int nextCell = map.getCell(nextY, nextX);
 
+    // 무적 상태일 때 벽(1, 2, 9)을 만나면 멈춤
+    if (invincibleTicks > 0 && (nextCell == 1 || nextCell == 2 || nextCell == 9)) {
+        isStopped = true;
+        return SNAKE_MOVE_OK;
+    }
+
+    // 멈춤 상태면 이동하지 않음
+    if (isStopped) return SNAKE_MOVE_OK;
+
     // Gate(7): 부모의 순간이동 처리 (아이템보다 우선)
     if (nextCell == CELL_GATE) {
         return Snake::move(map, gateManager);
@@ -39,39 +61,59 @@ int ItemSnake::move(Map& map, GateManager& gateManager) {
     
     // 1. Growth Item (5)인 경우
     if (nextCell == 5) {
-        // 부모의 move()를 호출하면 기본적으로 꼬리가 하나 잘리므로, 미리 꼬리 좌표를 저장.
         std::pair<int, int> oldTail = body.back();
-        
-        // 부모의 기본 이동 로직 수행 (머리 전진, 꼬리 1개 제거됨)
         int result = Snake::move(map, gateManager);
         if (result == -1) return -1;
-        
-        // 잘렸던 꼬리를 다시 복구하여 길이를 늘림.
         body.push_back(oldTail);
         map.setCell(oldTail.first, oldTail.second, 4);
-        
-        return 5; // Growth 아이템 획득 알림
+        return 5;
     }
     // 2. Poison Item (6)인 경우
     else if (nextCell == 6) {
-        // 부모의 기본 이동 로직 수행 (머리 전진, 꼬리 1개 제거됨)
         int result = Snake::move(map, gateManager);
         if (result == -1) return -1;
-        
-        // 독을 먹었으므로 꼬리를 한 개 더 자릅니다 (총 2개 감소)
         std::pair<int, int> extraTail = body.back();
         map.setCell(extraTail.first, extraTail.second, 0);
         body.pop_back();
-
-        // 길이가 3 미만이면 게임 오버
         if (body.size() < 3) {
             alive = false;
             return -1;
         }
+        return 6;
+    }
+    // 3. Invincible Item (11)인 경우
+    else if (nextCell == 11) {
+        int result = Snake::move(map, gateManager);
+        if (result == -1) return -1;
+        invincibleTicks = 50; // 5초 (50 ticks)
+        return 11;
+    }
+    // 4. Mystery Box (12)인 경우
+    else if (nextCell == 12) {
+        int result = Snake::move(map, gateManager);
+        if (result == -1) return -1;
         
-        return 6; // Poison 아이템 획득 알림
+        int randEffect = std::rand() % 3;
+        if (randEffect == 0) { // 성장 (Growth)
+            std::pair<int, int> oldTail = body.back();
+            body.push_back(oldTail);
+            map.setCell(oldTail.first, oldTail.second, 4);
+            return SNAKE_MOVE_MYSTERY_GROWTH;
+        } else if (randEffect == 1) { // 독 (Poison)
+            std::pair<int, int> extraTail = body.back();
+            map.setCell(extraTail.first, extraTail.second, 0);
+            body.pop_back();
+            if (body.size() < 3) {
+                alive = false;
+                return -1;
+            }
+            return SNAKE_MOVE_MYSTERY_POISON;
+        } else { // 무적 (Invincible)
+            invincibleTicks = 50;
+            return SNAKE_MOVE_MYSTERY_INVINCIBLE;
+        }
     }
     
-    // 3. 아이템이 없는 빈칸 이동의 경우 부모 로직 그대로 사용
+    // 5. 아이템이 없는 빈칸 이동의 경우 부모 로직 그대로 사용
     return Snake::move(map, gateManager);
 }

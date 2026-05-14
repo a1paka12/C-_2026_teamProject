@@ -25,7 +25,7 @@ const char* kStageMaps[] = {
 
 } // namespace
 
-int main() {
+int main(int argc, char* argv[]) {
     // ncurses 초기화
     initscr();
     start_color();
@@ -33,12 +33,20 @@ int main() {
     curs_set(0);
     keypad(stdscr, TRUE);
 
+    // 디버그 스테이지 설정
+    int startStage = 1;
+    if (argc >= 2) {
+        startStage = std::atoi(argv[1]);
+        if (startStage < 1) startStage = 1;
+        if (startStage > 4) startStage = 4;
+    }
+
     // 게임 시작 시각을 기록 (경과 시간 계산용)
     using clock = std::chrono::steady_clock;
     const auto gameStart = clock::now();
 
-    // Stage 1 맵 로드 및 게임 객체 생성
-    Map gameMap(kStageMaps[1]);
+    // 시작 스테이지 맵 로드 및 게임 객체 생성
+    Map gameMap(kStageMaps[startStage]);
     auto snake = std::make_unique<ItemSnake>(gameMap);
 
     GateManager gateManager(gameMap);
@@ -47,13 +55,17 @@ int main() {
     ItemManager itemManager(gameMap);
     RedWallProjectileManager redWall(gameMap);
 
-    // Score Board 초기화 (Stage 1, 초기 뱀 길이 설정)
+    // Score Board 초기화
     ScoreBoard scoreBoard;
-    scoreBoard.setStage(1);
+    scoreBoard.setStage(startStage);
     scoreBoard.resetForNewStage(snake->getLength());
 
     // Score Board 시작 열 위치: 맵 가로 크기(셀 * 2칸) + 여백 2칸
     const int scoreCol = gameMap.getWidth() * 2 + 2;
+
+    // 미스터리 박스 획득 메시지 관리
+    std::string mysteryMsg = "";
+    int mysteryMsgTicks = 0;
 
     // 화면 전체를 다시 그리는 람다 함수 (맵 + Score Board + Gate 교체 카운트다운)
     auto paintUi = [&]() {
@@ -62,6 +74,26 @@ int main() {
         redWall.drawOverlay();
         const int gateCd = gateManager.respawnCountdown();
         scoreBoard.draw(scoreCol, 0, gateCd);
+        
+        // 미스터리 박스 메시지 표시 (Score Board 하단)
+        if (!mysteryMsg.empty()) {
+            attron(COLOR_PAIR(11) | A_BOLD);
+            mvprintw(gameMap.getHeight() + 1, 0, "Mystery Box: %s", mysteryMsg.c_str());
+            attroff(COLOR_PAIR(11) | A_BOLD);
+        }
+
+        // 무적 시간 표시 (머리 위)
+        int invTicks = snake->getInvincibleTicks();
+        if (invTicks > 0) {
+            std::pair<int, int> head = snake->getHeadPos();
+            if (head.first > 0) { // 머리 위에 공간이 있는 경우 (맵 상단 경계 제외)
+                attron(COLOR_PAIR(11) | A_BOLD);
+                // 10틱을 1초로 계산하여 남은 초 표시
+                mvprintw(head.first - 1, head.second * 2, "%d", (invTicks + 9) / 10);
+                attroff(COLOR_PAIR(11) | A_BOLD);
+            }
+        }
+
         // Gate 타일 2칸 폭에 노란 배경+굵은 숫자 (자색/자색 페어는 숫자가 안 보임)
         if (gateCd > 0) {
             GatePos g1 = gateManager.getGate1();
@@ -104,10 +136,17 @@ int main() {
         ch = getch();
         if (ch == 'q' || ch == 'Q') break;  // Q키로 게임 종료
 
+        // 미스터리 메시지 지속 시간 감소
+        if (mysteryMsgTicks > 0) mysteryMsgTicks--;
+        else mysteryMsg = "";
+
         // 게임 경과 시간을 Score Board에 반영
         const int elapsedSec = static_cast<int>(
             std::chrono::duration_cast<std::chrono::seconds>(clock::now() - gameStart).count());
         scoreBoard.setElapsedSeconds(elapsedSec);
+
+        // 무적 시간 감소
+        snake->tickInvincible();
 
         bool redraw = false;
 
@@ -146,10 +185,21 @@ int main() {
             gateManager.afterSnakeMove();
 
             // 이동 결과에 따라 Score Board에 이벤트 반영
-            if (moveResult == SNAKE_MOVE_GROWTH) {
+            if (moveResult == SNAKE_MOVE_GROWTH || moveResult == SNAKE_MOVE_MYSTERY_GROWTH) {
                 scoreBoard.addGrowth();   // Growth Item 획득
-            } else if (moveResult == SNAKE_MOVE_POISON) {
+                if (moveResult == SNAKE_MOVE_MYSTERY_GROWTH) {
+                    mysteryMsg = "GROWTH! (+1)";
+                    mysteryMsgTicks = 20;
+                }
+            } else if (moveResult == SNAKE_MOVE_POISON || moveResult == SNAKE_MOVE_MYSTERY_POISON) {
                 scoreBoard.addPoison();   // Poison Item 획득
+                if (moveResult == SNAKE_MOVE_MYSTERY_POISON) {
+                    mysteryMsg = "POISON! (-1)";
+                    mysteryMsgTicks = 20;
+                }
+            } else if (moveResult == SNAKE_MOVE_MYSTERY_INVINCIBLE) {
+                mysteryMsg = "INVINCIBLE! (5s)";
+                mysteryMsgTicks = 20;
             }
             // 이동 전에는 Gate 통과 중이 아니었는데, 이동 후 통과 중이면 Gate 사용으로 판단
             if (!wasPassage && gateManager.isPassageActive()) {

@@ -46,7 +46,13 @@ void ItemManager::spawnItem(Map& map) {
         
         // 아이템은 빈 공간(0)에만 생성될 수 있음.
         if (map.getCell(y, x) == 0) {
-            int type = (std::rand() % 2 == 0) ? 5 : 6; // 5(Growth) 또는 6(Poison) 무작위 생성
+            int randVal = std::rand() % 4;
+            int type;
+            if (randVal == 0) type = 5;       // Growth (성장)
+            else if (randVal == 1) type = 6;  // Poison (독)
+            else if (randVal == 2) type = 11; // Invincible (무적)
+            else type = 12;                  // Mystery (미스터리)
+            
             Item item = {y, x, type, maxLifetime};
             items.push_back(item);
             map.setCell(y, x, type);

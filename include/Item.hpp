@@ -8,7 +8,7 @@
 struct Item {
     int y;
     int x;
-    int type; // 5: Growth 아이템, 6: Poison 아이템
+    int type; // 5: Growth, 6: Poison, 11: Invincible(무적), 12: Mystery(미스터리)
     int lifetimeTicks; // 사라질 때까지 남은 틱(Tick) 수
 };
 

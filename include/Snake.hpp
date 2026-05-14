@@ -8,10 +8,15 @@
 
 // (5단계 ScoreBoard에서 추가) move() / ItemSnake::move() 반환 코드 상수
 // 기존 반환값(-1, 0, 5, 6)에 이름을 붙여 main.cpp에서 가독성 있게 사용한다.
-constexpr int SNAKE_MOVE_DEAD = -1;
-constexpr int SNAKE_MOVE_OK = 0;
-constexpr int SNAKE_MOVE_GROWTH = 5;
-constexpr int SNAKE_MOVE_POISON = 6;
+constexpr int SNAKE_MOVE_DEAD = -1;       // 사망
+constexpr int SNAKE_MOVE_OK = 0;         // 일반 이동 성공
+constexpr int SNAKE_MOVE_GROWTH = 5;     // Growth 아이템 획득
+constexpr int SNAKE_MOVE_POISON = 6;     // Poison 아이템 획득
+constexpr int SNAKE_MOVE_INVINCIBLE = 11; // 무적 아이템 획득
+constexpr int SNAKE_MOVE_MYSTERY = 12;    // 미스터리 박스 (기본 코드)
+constexpr int SNAKE_MOVE_MYSTERY_GROWTH = 13;   // 미스터리 박스 - 성장
+constexpr int SNAKE_MOVE_MYSTERY_POISON = 14;   // 미스터리 박스 - 독
+constexpr int SNAKE_MOVE_MYSTERY_INVINCIBLE = 15; // 미스터리 박스 - 무적
 
 class Snake {
 public:
@@ -33,6 +38,12 @@ public:
     bool isAlive() const { return alive; }
     // (5단계 ScoreBoard에서 추가) Score Board에 현재 뱀 길이를 전달하기 위한 함수
     int getLength() const { return static_cast<int>(body.size()); }
+
+    // 뱀의 머리 좌표를 반환하는 헬퍼 함수
+    std::pair<int, int> getHeadPos() const { 
+        if (body.empty()) return {-1, -1};
+        return body.front(); 
+    }
 
 // (수정) Phase 3: 상속받은 ItemSnake 클래스에서 변수에 접근할 수 있도록 private에서 protected로 변경
 protected:
