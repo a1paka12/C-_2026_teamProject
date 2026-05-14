@@ -8,6 +8,15 @@ Map::Map(const std::string& filePath) : height(0), width(0) {
     validateAndResize();
 }
 
+// (5단계 ScoreBoard에서 추가) 스테이지 전환 시 맵 데이터를 초기화하고 새 파일을 다시 로드한다.
+void Map::resetFromFile(const std::string& filePath) {
+    data.clear();
+    height = 0;
+    width = 0;
+    loadFromFile(filePath);
+    validateAndResize();
+}
+
 void Map::loadFromFile(const std::string& filePath) {
     std::ifstream file(filePath);
     if (!file.is_open()) return;

@@ -64,3 +64,11 @@ void ItemManager::consumeItem(Map& map, int y, int x) {
         }
     }
 }
+
+// (5단계 ScoreBoard에서 추가) 스테이지 전환 시 기존 아이템을 모두 제거하고 새 맵에 다시 생성한다.
+void ItemManager::resetForNewMap(Map& map) {
+    items.clear();
+    for (int i = 0; i < maxItems; ++i) {
+        spawnItem(map);
+    }
+}

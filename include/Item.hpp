@@ -22,6 +22,9 @@ public:
     // 뱀이 아이템을 먹었을 때 호출됩니다.
     void consumeItem(Map& map, int y, int x);
 
+    // (5단계 ScoreBoard에서 추가) 스테이지/맵 교체 후 아이템 목록을 비우고 맵에 다시 스폰
+    void resetForNewMap(Map& map);
+
 private:
     std::vector<Item> items;
     int maxItems = 3;     // 맵에 존재할 수 있는 최대 아이템 수
