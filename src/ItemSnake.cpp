@@ -72,8 +72,8 @@ int ItemSnake::move(Map& map, GateManager& gateManager) {
     else if (nextCell == 6) {
         int result = Snake::move(map, gateManager);
         if (result == -1) return -1;
-        // 무적이면 독 피해(길이 감소)는 무시하되, 미션 Poison 획득으로는 인정
-        if (invincibleTicks > 0)
+        // 무적이면 독 피해(길이 감소)는 무시하되, 미션 Poison 획득으로는 인정 (길이 3 이하면 즉사)
+        if (invincibleTicks > 0 && body.size() > 3)
             return 6;
         std::pair<int, int> extraTail = body.back();
         map.setCell(extraTail.first, extraTail.second, 0);
@@ -103,8 +103,8 @@ int ItemSnake::move(Map& map, GateManager& gateManager) {
             map.setCell(oldTail.first, oldTail.second, 4);
             return SNAKE_MOVE_MYSTERY_GROWTH;
         } else if (randEffect == 1) { // 독 (Poison)
-            // 무적이면 길이는 유지하고 미션 Poison만 반영
-            if (invincibleTicks > 0)
+            // 무적이면 길이는 유지하고 미션 Poison만 반영 (길이 3 이하면 즉사)
+            if (invincibleTicks > 0 && body.size() > 3)
                 return SNAKE_MOVE_MYSTERY_POISON;
             std::pair<int, int> extraTail = body.back();
             map.setCell(extraTail.first, extraTail.second, 0);

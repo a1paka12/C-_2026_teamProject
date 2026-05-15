@@ -46,12 +46,15 @@ void ItemManager::spawnItem(Map& map) {
         
         // 아이템은 빈 공간(0)에만 생성될 수 있음.
         if (map.getCell(y, x) == 0) {
-            int randVal = std::rand() % 4;
+            int randVal = std::rand() % 100;
             int type;
-            if (randVal == 0) type = 5;       // Growth (성장)
-            else if (randVal == 1) type = 6;  // Poison (독)
-            else if (randVal == 2) type = 11; // Invincible (무적)
-            else type = 12;                  // Mystery (미스터리)
+            
+            // 아이템 출현 비율 조정 (합이 100이 되도록 설정)
+            // 예시: Growth 50%, Poison 20%, Mystery 15%, Invincible 15%
+            if (randVal < 50) type = 5;            // 0 ~ 49 (50%)
+            else if (randVal < 70) type = 6;       // 50 ~ 69 (20%)
+            else if (randVal < 90) type = 12;      // 70 ~ 84 (15%)
+            else type = 11;                        // 85 ~ 99 (15%)
             
             Item item = {y, x, type, maxLifetime};
             items.push_back(item);
