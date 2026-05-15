@@ -76,10 +76,10 @@ int main(int argc, char* argv[]) {
         const int gateCd = gateManager.respawnCountdown();
         scoreBoard.draw(scoreCol, 0, gateCd);
         
-        // 미스터리 박스 메시지 표시 (Score Board 하단)
+        // 알림 메시지 표시 (Score Board 하단)
         if (!mysteryMsg.empty()) {
             attron(COLOR_PAIR(11) | A_BOLD);
-            mvprintw(gameMap.getHeight() + 1, 0, "Mystery Box: %s", mysteryMsg.c_str());
+            mvprintw(gameMap.getHeight() + 1, 0, "%s", mysteryMsg.c_str());
             attroff(COLOR_PAIR(11) | A_BOLD);
         }
 
@@ -131,6 +131,15 @@ int main(int argc, char* argv[]) {
     bool gameOver = false;
     int lastGateCd = -1;
     int lastPaintedSecond = -1;
+    int currentTimeout = 100;
+    
+    // 스테이지 시작 시간 (속도 계산용)
+    int stageStartSec = 0;
+    
+    // 아이템 효과에 의한 속도 조절
+    int speedModifierFromItems = 0;
+    int growthCountForSpeed = 0;
+    int poisonCountForSpeed = 0;
 
     // ── 메인 게임 루프 ──
     while (true) {
@@ -145,6 +154,24 @@ int main(int argc, char* argv[]) {
         const int elapsedSec = static_cast<int>(
             std::chrono::duration_cast<std::chrono::seconds>(clock::now() - gameStart).count());
         scoreBoard.setElapsedSeconds(elapsedSec);
+
+        // 속도 계산 (스테이지 경과 시간 기준, 15초마다 10ms 감소 + 아이템 효과)
+        int stageElapsedSec = elapsedSec - stageStartSec;
+        int baseTimeout = 100 - (stageElapsedSec / 15) * 10;
+        int targetTimeout = baseTimeout - speedModifierFromItems;
+        if (targetTimeout < 30) targetTimeout = 30; // 최대 속도 제한
+        if (targetTimeout > 150) targetTimeout = 150; // 최소 속도 제한 (너무 느려지지 않게)
+        
+        if (targetTimeout < currentTimeout) {
+            currentTimeout = targetTimeout;
+            mysteryMsg = "SPEED UP!";
+            mysteryMsgTicks = 20; // 약 2초간 표시
+        } else if (targetTimeout > currentTimeout) {
+            currentTimeout = targetTimeout;
+            mysteryMsg = "SPEED DOWN!";
+            mysteryMsgTicks = 20; // 약 2초간 표시
+        }
+        timeout(currentTimeout);
 
         // 무적 시간 감소
         snake->tickInvincible();
@@ -188,18 +215,30 @@ int main(int argc, char* argv[]) {
             // 이동 결과에 따라 Score Board에 이벤트 반영
             if (moveResult == SNAKE_MOVE_GROWTH || moveResult == SNAKE_MOVE_MYSTERY_GROWTH) {
                 scoreBoard.addGrowth();   // Growth Item 획득
+                growthCountForSpeed++;
+                if (growthCountForSpeed >= 4) {
+                    growthCountForSpeed = 0;
+                    speedModifierFromItems += 10; // 속도 빨라짐 (timeout 감소)
+                }
+                
                 if (moveResult == SNAKE_MOVE_MYSTERY_GROWTH) {
-                    mysteryMsg = "GROWTH! (+1)";
+                    mysteryMsg = "Mystery Box: GROWTH! (+1)";
                     mysteryMsgTicks = 20;
                 }
             } else if (moveResult == SNAKE_MOVE_POISON || moveResult == SNAKE_MOVE_MYSTERY_POISON) {
                 scoreBoard.addPoison();   // Poison Item 획득
+                poisonCountForSpeed++;
+                if (poisonCountForSpeed >= 3) {
+                    poisonCountForSpeed = 0;
+                    speedModifierFromItems -= 10; // 속도 느려짐 (timeout 증가)
+                }
+                
                 if (moveResult == SNAKE_MOVE_MYSTERY_POISON) {
-                    mysteryMsg = "POISON! (-1)";
+                    mysteryMsg = "Mystery Box: POISON! (-1)";
                     mysteryMsgTicks = 20;
                 }
             } else if (moveResult == SNAKE_MOVE_MYSTERY_INVINCIBLE) {
-                mysteryMsg = "INVINCIBLE! (5s)";
+                mysteryMsg = "Mystery Box: INVINCIBLE! (5s)";
                 mysteryMsgTicks = 20;
             }
             // 이동 전에는 Gate 통과 중이 아니었는데, 이동 후 통과 중이면 Gate 사용으로 판단
@@ -257,9 +296,16 @@ int main(int argc, char* argv[]) {
                 scoreBoard.resetForNewStage(snake->getLength());
                 tick = 0;
                 redraw = true;
+                
+                // 속도 및 스테이지 시작 시간 초기화
+                stageStartSec = elapsedSec;
+                speedModifierFromItems = 0;
+                growthCountForSpeed = 0;
+                poisonCountForSpeed = 0;
+                currentTimeout = 100;
 
                 // 비차단 모드 복원
-                timeout(100);
+                timeout(currentTimeout);
             }
         }
 
