@@ -64,8 +64,10 @@ bool RedWallProjectileManager::isSolidForProjectile(int cell) {
     return cell == 1 || cell == 2 || cell == CELL_GATE || cell == 9;
 }
 
-void RedWallProjectileManager::finishChargingAndFire(Map& map, ItemSnake& snake, bool& outGameOver) {
+void RedWallProjectileManager::finishChargingAndFire(Map& map, ItemSnake& snake, bool& outGameOver,
+                                                   bool& outSnakeHit) {
     outGameOver = false;
+    outSnakeHit = false;
     if (!charging_) return;
 
     const int h = map.getHeight();
@@ -110,9 +112,12 @@ void RedWallProjectileManager::finishChargingAndFire(Map& map, ItemSnake& snake,
         snake.applyRedWallHit(map);
         if (!snake.isAlive()) {
             outGameOver = true;
+        } else {
+            outSnakeHit = true;
         }
         destroyProjectile();
         idleSince_ = std::chrono::steady_clock::now();
+        return;
     }
 }
 
@@ -154,8 +159,10 @@ void RedWallProjectileManager::tryBeginCharge(Map& map) {
     chargeBlinkPhase_ = 0;
 }
 
-bool RedWallProjectileManager::advanceProjectile(Map& map, ItemSnake& snake, bool& outGameOver) {
+bool RedWallProjectileManager::advanceProjectile(Map& map, ItemSnake& snake, bool& outGameOver,
+                                                 bool& outSnakeHit) {
     outGameOver = false;
+    outSnakeHit = false;
     if (!projectileActive_) return false;
 
     const int h = map.getHeight();
@@ -182,6 +189,8 @@ bool RedWallProjectileManager::advanceProjectile(Map& map, ItemSnake& snake, boo
         snake.applyRedWallHit(map);
         if (!snake.isAlive()) {
             outGameOver = true;
+        } else {
+            outSnakeHit = true;
         }
         destroyProjectile();
         idleSince_ = std::chrono::steady_clock::now();
@@ -207,10 +216,14 @@ RedWallProjectileManager::UpdateResult RedWallProjectileManager::update(Map& map
 
         if (now - chargeStart_ >= kChargeDuration) {
             bool spawnGameOver = false;
-            finishChargingAndFire(map, snake, spawnGameOver);
+            bool spawnHit = false;
+            finishChargingAndFire(map, snake, spawnGameOver, spawnHit);
             if (spawnGameOver) {
                 out.gameOver = true;
                 return out;
+            }
+            if (spawnHit) {
+                out.snakeHitRedWall = true;
             }
             out.needsRedraw = true;
         }
@@ -220,10 +233,14 @@ RedWallProjectileManager::UpdateResult RedWallProjectileManager::update(Map& map
         out.needsRedraw = true;
         if (snakeStepTick) {
             bool gameOverFromHit = false;
-            advanceProjectile(map, snake, gameOverFromHit);
+            bool hit = false;
+            advanceProjectile(map, snake, gameOverFromHit, hit);
             if (gameOverFromHit) {
                 out.gameOver = true;
                 return out;
+            }
+            if (hit) {
+                out.snakeHitRedWall = true;
             }
         }
     } else if (!charging_) {

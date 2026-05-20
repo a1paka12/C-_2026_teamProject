@@ -11,6 +11,7 @@
 #include "Snake.hpp"
 #include "ScoreBoard.hpp"
 #include "RedWallProjectile.hpp"
+#include "Zone.hpp"
 
 // 스테이지별 맵 파일 경로 (Stage 1~4)
 namespace {
@@ -53,6 +54,7 @@ int main(int argc, char* argv[]) {
     gateManager.spawnGates();
 
     ItemManager itemManager(gameMap);
+    ZoneManager zoneManager(gameMap);  // 슬로우/패스트 존 (시간 제한 스폰)
     RedWallProjectileManager redWall(gameMap);
 
     // Score Board 초기화
@@ -63,9 +65,24 @@ int main(int argc, char* argv[]) {
     // Score Board 시작 열 위치: 맵 가로 크기(셀 * 2칸) + 여백 2칸
     const int scoreCol = gameMap.getWidth() * 2 + 2;
 
-    // 미스터리 박스 획득 메시지 관리
-    std::string mysteryMsg = "";
-    int mysteryMsgTicks = 0;
+    // ── 하단 알림 (맵 아래 한 줄: 존·아이템·미스터리·빨간 블록·속도 변화) ──
+    // 맵 draw()가 COLOR_PAIR 1~18을 매 프레임 재정의하므로, 알림은 20번대만 사용
+    std::string statusMsg;
+    int statusMsgTicks = 0;
+    enum StatusStyle {
+        STATUS_DEFAULT,  // 흰 글자
+        STATUS_WARN,     // 노랑 (속도 변화 등)
+        STATUS_GOOD,     // 초록 (성장·패스트 존)
+        STATUS_BAD,      // 빨강 (독·빨간 블록)
+        STATUS_INFO      // 시안 (슬로우·무적·미스터리)
+    };
+    StatusStyle statusStyle = STATUS_DEFAULT;
+
+    auto showStatus = [&](const char* msg, int ticks = 20, StatusStyle style = STATUS_DEFAULT) {
+        statusMsg = msg;
+        statusMsgTicks = ticks;
+        statusStyle = style;
+    };
 
     // 화면 전체를 다시 그리는 람다 함수 (맵 + Score Board + Gate 교체 카운트다운)
     auto paintUi = [&]() {
@@ -75,11 +92,32 @@ int main(int argc, char* argv[]) {
         const int gateCd = gateManager.respawnCountdown();
         scoreBoard.draw(scoreCol, 0, gateCd);
         
-        // 알림 메시지 표시 (Score Board 하단)
-        if (!mysteryMsg.empty()) {
-            attron(COLOR_PAIR(11) | A_BOLD);
-            mvprintw(gameMap.getHeight() + 1, 0, "%s", mysteryMsg.c_str());
-            attroff(COLOR_PAIR(11) | A_BOLD);
+        // 하단 알림 출력 (검정 배경 + 글자색 — 맵 7번(초록/초록)과 겹치지 않음)
+        if (!statusMsg.empty()) {
+            int statusPair = 20;
+            if (has_colors()) {
+                init_pair(20, COLOR_WHITE, COLOR_BLACK);
+                init_pair(21, COLOR_YELLOW, COLOR_BLACK);
+                init_pair(22, COLOR_GREEN, COLOR_BLACK);
+                init_pair(23, COLOR_RED, COLOR_BLACK);
+                init_pair(24, COLOR_CYAN, COLOR_BLACK);
+                switch (statusStyle) {
+                    case STATUS_WARN: statusPair = 21; break;
+                    case STATUS_GOOD: statusPair = 22; break;
+                    case STATUS_BAD:  statusPair = 23; break;
+                    case STATUS_INFO: statusPair = 24; break;
+                    default:          statusPair = 20; break;
+                }
+                attron(COLOR_PAIR(statusPair) | A_BOLD);
+            } else {
+                attron(A_BOLD);
+            }
+            mvprintw(gameMap.getHeight() + 1, 0, "%s", statusMsg.c_str());
+            if (has_colors()) {
+                attroff(COLOR_PAIR(statusPair) | A_BOLD);
+            } else {
+                attroff(A_BOLD);
+            }
         }
 
         // 무적 시간 표시 (머리 위)
@@ -139,36 +177,47 @@ int main(int argc, char* argv[]) {
     int speedModifierFromItems = 0;
     int growthCountForSpeed = 0;
     int poisonCountForSpeed = 0;
+    int lastHeadZone = ZONE_NONE;
 
     // ── 메인 게임 루프 ──
     while (true) {
         ch = getch();
         if (ch == 'q' || ch == 'Q') break;  // Q키로 게임 종료
 
-        // 미스터리 메시지 지속 시간 감소
-        if (mysteryMsgTicks > 0) mysteryMsgTicks--;
-        else mysteryMsg = "";
+        if (statusMsgTicks > 0) statusMsgTicks--;
+        else statusMsg.clear();
 
         // 게임 경과 시간을 Score Board에 반영
         const int elapsedSec = static_cast<int>(
             std::chrono::duration_cast<std::chrono::seconds>(clock::now() - gameStart).count());
         scoreBoard.setElapsedSeconds(elapsedSec);
 
-        // 속도 계산 (스테이지 경과 시간 기준, 15초마다 10ms 감소 + 아이템 효과)
+        // 속도 계산 (스테이지 경과 시간 + 아이템 + 머리 위치 존)
         int stageElapsedSec = elapsedSec - stageStartSec;
         int baseTimeout = 100 - (stageElapsedSec / 15) * 10;
-        int targetTimeout = baseTimeout - speedModifierFromItems;
-        if (targetTimeout < 30) targetTimeout = 30; // 최대 속도 제한
-        if (targetTimeout > 150) targetTimeout = 150; // 최소 속도 제한 (너무 느려지지 않게)
-        
+        std::pair<int, int> headPos = snake->getHeadPos();
+        const int headZone = gameMap.getZone(headPos.first, headPos.second);
+        const int zoneTimeoutDelta = gameMap.getZoneTimeoutDelta(headPos.first, headPos.second);
+        int targetTimeout = baseTimeout - speedModifierFromItems + zoneTimeoutDelta;
+        if (targetTimeout < 30) targetTimeout = 30;
+        if (targetTimeout > 180) targetTimeout = 180;
+
+        if (headZone != lastHeadZone) {
+            if (headZone == ZONE_SLOW)
+                showStatus("Slow Zone", 15, STATUS_INFO);
+            else if (headZone == ZONE_FAST)
+                showStatus("Fast Zone", 15, STATUS_GOOD);
+            lastHeadZone = headZone;
+        }
+
         if (targetTimeout < currentTimeout) {
             currentTimeout = targetTimeout;
-            mysteryMsg = "SPEED UP!";
-            mysteryMsgTicks = 20; // 약 2초간 표시
+            if (statusMsgTicks <= 0)
+                showStatus("Speed Up!", 20, STATUS_WARN);
         } else if (targetTimeout > currentTimeout) {
             currentTimeout = targetTimeout;
-            mysteryMsg = "SPEED DOWN!";
-            mysteryMsgTicks = 20; // 약 2초간 표시
+            if (statusMsgTicks <= 0)
+                showStatus("Speed Down!", 20, STATUS_WARN);
         }
         timeout(currentTimeout);
 
@@ -187,6 +236,11 @@ int main(int argc, char* argv[]) {
 
         // 아이템 매니저 업데이트 (수명 체크, 소멸/재생성)
         if (itemManager.update(gameMap)) {
+            redraw = true;
+        }
+
+        // 속도 존 업데이트 (일정 시간 후 사라지고 다른 위치에 재생성)
+        if (zoneManager.update(gameMap)) {
             redraw = true;
         }
 
@@ -211,34 +265,43 @@ int main(int argc, char* argv[]) {
             }
             gateManager.afterSnakeMove();
 
-            // 이동 결과에 따라 Score Board에 이벤트 반영
-            if (moveResult == SNAKE_MOVE_GROWTH || moveResult == SNAKE_MOVE_MYSTERY_GROWTH) {
-                scoreBoard.addGrowth();   // Growth Item 획득
+            // 이동 결과에 따라 Score Board·하단 알림 반영
+            if (moveResult == SNAKE_MOVE_GROWTH) {
+                scoreBoard.addGrowth();
                 growthCountForSpeed++;
                 if (growthCountForSpeed >= 4) {
                     growthCountForSpeed = 0;
-                    speedModifierFromItems += 10; // 속도 빨라짐 (timeout 감소)
+                    speedModifierFromItems += 10;
                 }
-                
-                if (moveResult == SNAKE_MOVE_MYSTERY_GROWTH) {
-                    mysteryMsg = "Mystery Box: GROWTH! (+1)";
-                    mysteryMsgTicks = 20;
+                showStatus("Growth! Length +1", 20, STATUS_GOOD);
+            } else if (moveResult == SNAKE_MOVE_MYSTERY_GROWTH) {
+                scoreBoard.addGrowth();
+                growthCountForSpeed++;
+                if (growthCountForSpeed >= 4) {
+                    growthCountForSpeed = 0;
+                    speedModifierFromItems += 10;
                 }
-            } else if (moveResult == SNAKE_MOVE_POISON || moveResult == SNAKE_MOVE_MYSTERY_POISON) {
-                scoreBoard.addPoison();   // Poison Item 획득
+                showStatus("Mystery Box: Growth! (+1)", 22, STATUS_INFO);
+            } else if (moveResult == SNAKE_MOVE_POISON) {
+                scoreBoard.addPoison();
                 poisonCountForSpeed++;
                 if (poisonCountForSpeed >= 3) {
                     poisonCountForSpeed = 0;
-                    speedModifierFromItems -= 10; // 속도 느려짐 (timeout 증가)
+                    speedModifierFromItems -= 10;
                 }
-                
-                if (moveResult == SNAKE_MOVE_MYSTERY_POISON) {
-                    mysteryMsg = "Mystery Box: POISON! (-1)";
-                    mysteryMsgTicks = 20;
+                showStatus("Poison! Length -1", 20, STATUS_BAD);
+            } else if (moveResult == SNAKE_MOVE_MYSTERY_POISON) {
+                scoreBoard.addPoison();
+                poisonCountForSpeed++;
+                if (poisonCountForSpeed >= 3) {
+                    poisonCountForSpeed = 0;
+                    speedModifierFromItems -= 10;
                 }
+                showStatus("Mystery Box: Poison! (-1)", 22, STATUS_INFO);
+            } else if (moveResult == SNAKE_MOVE_INVINCIBLE) {
+                showStatus("Invincible! (5s)", 22, STATUS_INFO);
             } else if (moveResult == SNAKE_MOVE_MYSTERY_INVINCIBLE) {
-                mysteryMsg = "Mystery Box: INVINCIBLE! (5s)";
-                mysteryMsgTicks = 20;
+                showStatus("Mystery Box: Invincible! (5s)", 22, STATUS_INFO);
             }
             // 이동 전에는 Gate 통과 중이 아니었는데, 이동 후 통과 중이면 Gate 사용으로 판단
             if (!wasPassage && gateManager.isPassageActive()) {
@@ -283,6 +346,7 @@ int main(int argc, char* argv[]) {
 
                 // 아이템, 뱀, Gate를 새 맵 기준으로 재생성
                 itemManager.resetForNewMap(gameMap);
+                zoneManager.resetForNewMap(gameMap);
                 snake = std::make_unique<ItemSnake>(gameMap);
                 gateManager.spawnGates();
                 redWall.resetForNewMap(gameMap);
@@ -299,6 +363,7 @@ int main(int argc, char* argv[]) {
                 growthCountForSpeed = 0;
                 poisonCountForSpeed = 0;
                 currentTimeout = 100;
+                lastHeadZone = ZONE_NONE;
 
                 // 비차단 모드 복원
                 timeout(currentTimeout);
@@ -313,6 +378,10 @@ int main(int argc, char* argv[]) {
         if (redWallResult.needsRedraw) {
             redraw = true;
             scoreBoard.updateLength(snake->getLength());
+        }
+        if (redWallResult.snakeHitRedWall) {
+            showStatus("Red Block Hit! Length -3", 25, STATUS_BAD);
+            redraw = true;
         }
 
         // Gate 교체 카운트(1~3)가 바뀌면 반드시 다시 그림 (초 단위 게임 타이머와 어긋나도 표시 유지)

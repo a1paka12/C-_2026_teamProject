@@ -22,6 +22,7 @@ public:
     struct UpdateResult {
         bool needsRedraw = false;
         bool gameOver = false;
+        bool snakeHitRedWall = false;  // 빨간 발사체에 맞아 꼬리 -3칸 후 생존 (main 하단 알림용)
     };
     UpdateResult update(Map& map, ItemSnake& snake, bool snakeStepTick);
 
@@ -53,11 +54,11 @@ private:
     static constexpr std::chrono::seconds kChargeDuration{5};
     static constexpr std::chrono::seconds kSpawnInterval{15};
 
-    void finishChargingAndFire(Map& map, ItemSnake& snake, bool& outGameOver);
+    void finishChargingAndFire(Map& map, ItemSnake& snake, bool& outGameOver, bool& outSnakeHit);
     void destroyProjectile();
     void tryBeginCharge(Map& map);
-    // 반환: true면 발사체가 아직 존재(이동 후), false면 소멸/종료. outGameOver는 뱀 규칙 위반 시 true.
-    bool advanceProjectile(Map& map, ItemSnake& snake, bool& outGameOver);
+    // 반환: true면 발사체가 아직 존재(이동 후), false면 소멸/종료.
+    bool advanceProjectile(Map& map, ItemSnake& snake, bool& outGameOver, bool& outSnakeHit);
 
     static bool isCornerCell(int y, int x, int h, int w);
     static bool isBoundaryCell(int y, int x, int h, int w);

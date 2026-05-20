@@ -22,15 +22,23 @@ void Map::loadFromFile(const std::string& filePath) {
     std::ifstream file(filePath);
     if (!file.is_open()) return;
 
+    data.clear();
+    zoneData.clear();
+
     std::string line;
     while (std::getline(file, line)) {
         if (line.empty()) continue;
         std::vector<int> row;
+        std::vector<int> zoneRow;
         for (char c : line) {
-            if (isdigit(c)) row.push_back(c - '0');
+            if (isdigit(c)) {
+                row.push_back(c - '0');
+                zoneRow.push_back(ZONE_NONE);
+            }
         }
         if (!row.empty()) {
             data.push_back(row);
+            zoneData.push_back(zoneRow);
             width = std::max(width, (int)row.size());
         }
     }
@@ -38,15 +46,25 @@ void Map::loadFromFile(const std::string& filePath) {
 }
 
 void Map::validateAndResize() {
-    int targetSize = 25; // 25x25
+    const int targetSize = 25;
+    if (data.empty()) return;
 
-    if (height < targetSize) data.resize(targetSize, std::vector<int>(width, 9));
+    if ((int)data.size() < targetSize)
+        data.resize(targetSize, std::vector<int>(width, 9));
+    if (zoneData.size() < data.size())
+        zoneData.resize(data.size(), std::vector<int>(width, ZONE_NONE));
+
     for (int i = 0; i < (int)data.size(); ++i) {
-        if ((int)data[i].size() < targetSize) data[i].resize(targetSize, 9);
+        if ((int)data[i].size() < targetSize)
+            data[i].resize(targetSize, 9);
+        if (i >= (int)zoneData.size())
+            zoneData.emplace_back(targetSize, ZONE_NONE);
+        else if ((int)zoneData[i].size() < targetSize)
+            zoneData[i].resize(targetSize, ZONE_NONE);
     }
 
-    height = data.size();
-    width = data[0].size();
+    height = static_cast<int>(data.size());
+    width = static_cast<int>(data[0].size());
 }
 
 void Map::draw(int boundaryRedBlinkPhase) const {
@@ -66,11 +84,24 @@ void Map::draw(int boundaryRedBlinkPhase) const {
     init_pair(8, COLOR_RED, COLOR_RED);      // Poison 아이템
     init_pair(13, COLOR_CYAN, COLOR_CYAN);   // 무적 아이템 (밝은 하늘색)
     init_pair(14, COLOR_WHITE, COLOR_BLUE);   // 미스터리 아이템 (파란 배경에 흰 글씨)
+    init_pair(17, COLOR_WHITE, COLOR_BLUE);   // 슬로우 존
+    init_pair(18, COLOR_BLACK, COLOR_GREEN);  // 패스트 존
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             int val = data[y][x];
+            const int zone = getZone(y, x);
             int drawX = x * 2; // 가로 비율을 맞추기 위해 x좌표 2배
+
+            // 빈 바닥(0) 위에 존 색만 덮어 그림 (뱀·아이템 셀은 아래 switch에서 처리)
+            if (val == 0 && zone != ZONE_NONE) {
+                const int zonePair = (zone == ZONE_SLOW) ? 17 : 18;
+                attron(COLOR_PAIR(zonePair));
+                mvaddch(y, drawX, '~');
+                mvaddch(y, drawX + 1, ' ');
+                attroff(COLOR_PAIR(zonePair));
+                continue;
+            }
             
             switch (val) {
                 case 1: 
@@ -156,4 +187,32 @@ void Map::setCell(int y, int x, int value) {
 int Map::getCell(int y, int x) const {
     if (y >= 0 && y < height && x >= 0 && x < width) return data[y][x];
     return -1;
+}
+
+// ── 존 레이어 조회·설정 (뱀 이동과 무관하게 zoneData만 변경) ──
+
+int Map::getZone(int y, int x) const {
+    if (y >= 0 && y < height && x >= 0 && x < width &&
+        y < (int)zoneData.size() && x < (int)zoneData[y].size()) {
+        return zoneData[y][x];
+    }
+    return ZONE_NONE;
+}
+
+void Map::setZone(int y, int x, int zoneType) {
+    if (y >= 0 && y < height && x >= 0 && x < width) {
+        if (y >= (int)zoneData.size())
+            zoneData.resize(height, std::vector<int>(width, ZONE_NONE));
+        if (x >= (int)zoneData[y].size())
+            zoneData[y].resize(width, ZONE_NONE);
+        zoneData[y][x] = zoneType;
+    }
+}
+
+int Map::getZoneTimeoutDelta(int y, int x) const {
+    switch (getZone(y, x)) {
+        case ZONE_SLOW: return 35;  // 루프 간격 증가 → 이동 느림
+        case ZONE_FAST: return -35; // 루프 간격 감소 → 이동 빠름
+        default: return 0;
+    }
 }
