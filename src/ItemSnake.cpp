@@ -22,7 +22,7 @@ bool ItemSnake::applyRedWallHit(Map& map) {
 }
 
 bool ItemSnake::updateDirection(int ch) {
-    Direction oldDir = currentDir;
+    const Direction oldDir = currentDir;
     bool result = Snake::updateDirection(ch);
     if (result && isStopped && currentDir != oldDir) {
         // 무적 상태에서 벽에 막혔을 때, 진행 방향과 다른 방향으로 꺾으면 다시 움직임
@@ -35,15 +35,16 @@ int ItemSnake::move(Map& map, GateManager& gateManager) {
     if (!alive) return -1;
     
     // 다음 이동할 좌표를 미리 계산하여 아이템 여부만 먼저 확인.
-    int nextY = body.front().first;
-    int nextX = body.front().second;
+    const auto& head = body.front();
+    int nextY = head.first;
+    int nextX = head.second;
     
     if (currentDir == UP) nextY--;
     else if (currentDir == DOWN) nextY++;
     else if (currentDir == LEFT) nextX--;
     else if (currentDir == RIGHT) nextX++;
     
-    int nextCell = map.getCell(nextY, nextX);
+    const int nextCell = map.getCell(nextY, nextX);
 
     // 무적 상태일 때 벽(1, 2, 9)을 만나면 멈춤
     if (invincibleTicks > 0 && (nextCell == 1 || nextCell == 2 || nextCell == 9)) {
@@ -61,8 +62,8 @@ int ItemSnake::move(Map& map, GateManager& gateManager) {
     
     // 1. Growth Item (5)인 경우
     if (nextCell == 5) {
-        std::pair<int, int> oldTail = body.back();
-        int result = Snake::move(map, gateManager);
+        const std::pair<int, int> oldTail = body.back();
+        const int result = Snake::move(map, gateManager);
         if (result == -1) return -1;
         body.push_back(oldTail);
         map.setCell(oldTail.first, oldTail.second, 4);
@@ -70,12 +71,12 @@ int ItemSnake::move(Map& map, GateManager& gateManager) {
     }
     // 2. Poison Item (6)인 경우
     else if (nextCell == 6) {
-        int result = Snake::move(map, gateManager);
+        const int result = Snake::move(map, gateManager);
         if (result == -1) return -1;
         // 무적이면 독 피해(길이 감소)는 무시하되, 미션 Poison 획득으로는 인정 (길이 3 이하면 즉사)
         if (invincibleTicks > 0 && body.size() > 3)
             return 6;
-        std::pair<int, int> extraTail = body.back();
+        const std::pair<int, int> extraTail = body.back();
         map.setCell(extraTail.first, extraTail.second, 0);
         body.pop_back();
         if (body.size() < 3) {
@@ -86,19 +87,19 @@ int ItemSnake::move(Map& map, GateManager& gateManager) {
     }
     // 3. Invincible Item (11)인 경우
     else if (nextCell == 11) {
-        int result = Snake::move(map, gateManager);
+        const int result = Snake::move(map, gateManager);
         if (result == -1) return -1;
         invincibleTicks = 50; // 5초 (50 ticks)
         return 11;
     }
     // 4. Mystery Box (12)인 경우
     else if (nextCell == 12) {
-        int result = Snake::move(map, gateManager);
+        const int result = Snake::move(map, gateManager);
         if (result == -1) return -1;
         
-        int randEffect = std::rand() % 3;
+        const int randEffect = std::rand() % 3;
         if (randEffect == 0) { // 성장 (Growth)
-            std::pair<int, int> oldTail = body.back();
+            const std::pair<int, int> oldTail = body.back();
             body.push_back(oldTail);
             map.setCell(oldTail.first, oldTail.second, 4);
             return SNAKE_MOVE_MYSTERY_GROWTH;
@@ -106,7 +107,7 @@ int ItemSnake::move(Map& map, GateManager& gateManager) {
             // 무적이면 길이는 유지하고 미션 Poison만 반영 (길이 3 이하면 즉사)
             if (invincibleTicks > 0 && body.size() > 3)
                 return SNAKE_MOVE_MYSTERY_POISON;
-            std::pair<int, int> extraTail = body.back();
+            const std::pair<int, int> extraTail = body.back();
             map.setCell(extraTail.first, extraTail.second, 0);
             body.pop_back();
             if (body.size() < 3) {

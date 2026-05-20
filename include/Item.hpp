@@ -20,15 +20,18 @@ public:
     bool update(Map& map);
 
     // 뱀이 아이템을 먹었을 때 호출됩니다.
-    void consumeItem(Map& map, int y, int x);
+    void consumeItem(Map& map, const int y, const int x);
 
     // (5단계 ScoreBoard에서 추가) 스테이지/맵 교체 후 아이템 목록을 비우고 맵에 다시 스폰
     void resetForNewMap(Map& map);
 
+    // const 게터 추가
+    const std::vector<Item>& getItems() const { return items; }
+
 private:
     std::vector<Item> items;
-    int maxItems = 3;     // 맵에 존재할 수 있는 최대 아이템 수
-    int maxLifetime = 50; // 50 틱 ~ 약 5초 (1 틱이 100ms일 경우)
+    const int maxItems = 3;     // 맵에 존재할 수 있는 최대 아이템 수
+    const int maxLifetime = 50; // 50 틱 ~ 약 5초 (1 틱이 100ms일 경우)
 
     void spawnItem(Map& map);
 };

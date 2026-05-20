@@ -46,7 +46,7 @@ void ItemManager::spawnItem(Map& map) {
         
         // 아이템은 빈 공간(0)에만 생성될 수 있음.
         if (map.getCell(y, x) == 0) {
-            int randVal = std::rand() % 100;
+            const int randVal = std::rand() % 100;
             int type;
             
             // 아이템 출현 비율 조정 (합이 100이 되도록 설정)
@@ -56,7 +56,7 @@ void ItemManager::spawnItem(Map& map) {
             else if (randVal < 90) type = 12;      // 70 ~ 84 (15%)
             else type = 11;                        // 85 ~ 99 (15%)
             
-            Item item = {y, x, type, maxLifetime};
+            const Item item = {y, x, type, maxLifetime};
             items.push_back(item);
             map.setCell(y, x, type);
             break;
@@ -65,7 +65,7 @@ void ItemManager::spawnItem(Map& map) {
     }
 }
 
-void ItemManager::consumeItem(Map& map, int y, int x) {
+void ItemManager::consumeItem(Map& map, const int y, const int x) {
     for (auto it = items.begin(); it != items.end(); ++it) {
         if (it->y == y && it->x == x) {
             items.erase(it);
