@@ -294,12 +294,12 @@ void ScoreBoard::draw(int originCol, int originRow, int gateRespawnCountdown) co
             gradeAttr(grade, cp, bold);
             attron(COLOR_PAIR(cp));
             if (bold) attron(A_BOLD);
-            mvprintw(y++, x, "|  %d   %-7s  %-2s                    |",
+            mvprintw(y++, x, "|  %d   %-7s  %-2s                     |",
                      i, timeBuf, grade);
             if (bold) attroff(A_BOLD);
             attroff(COLOR_PAIR(cp));
         } else {
-            mvprintw(y++, x, "|  %d   %-7s  %-2s                    |",
+            mvprintw(y++, x, "|  %d   %-7s  %-2s                     |",
                      i, timeBuf, grade);
         }
     }
