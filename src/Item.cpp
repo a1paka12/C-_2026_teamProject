@@ -4,7 +4,7 @@
 
 ItemManager::ItemManager(Map& map) {
     std::srand(std::time(nullptr));
-    // 초기 아이템들을 생성합니다.
+    // 초기 아이템들을 생성
     for (int i = 0; i < maxItems; ++i) {
         spawnItem(map);
     }
@@ -13,7 +13,7 @@ ItemManager::ItemManager(Map& map) {
 bool ItemManager::update(Map& map) {
     bool mapChanged = false;
     
-    // 수명이 다한 아이템을 확인합니다.
+    // 수명이 다한 아이템을 확인
     for (auto it = items.begin(); it != items.end(); ) {
         it->lifetimeTicks--;
         if (it->lifetimeTicks <= 0) {
@@ -28,7 +28,7 @@ bool ItemManager::update(Map& map) {
         }
     }
 
-    // 최대 아이템 수(maxItems)를 유지하도록 새로운 아이템을 생성.
+    // 최대 아이템 수를 유지하도록 새로운 아이템을 생성.
     while ((int)items.size() < maxItems) {
         spawnItem(map);
         mapChanged = true;
@@ -74,7 +74,7 @@ void ItemManager::consumeItem(Map& map, const int y, const int x) {
     }
 }
 
-// (5단계 ScoreBoard에서 추가) 스테이지 전환 시 기존 아이템을 모두 제거하고 새 맵에 다시 생성한다.
+// 스테이지 전환 시 기존 아이템을 모두 제거하고 새 맵에 다시 생성
 void ItemManager::resetForNewMap(Map& map) {
     items.clear();
     for (int i = 0; i < maxItems; ++i) {

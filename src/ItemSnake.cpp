@@ -1,6 +1,6 @@
 #include "ItemSnake.hpp"
 #include "Gate.hpp"
-#include "Snake.hpp"  // (5단계 ScoreBoard에서 추가) SNAKE_MOVE_* 상수 사용을 위해 포함
+#include "Snake.hpp"  // SNAKE_MOVE_* 상수 사용을 위해 포함
 #include <cstdlib>
 
 bool ItemSnake::applyRedWallHit(Map& map) {
