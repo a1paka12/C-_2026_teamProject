@@ -50,17 +50,20 @@ int ItemSnake::move(Map& map, GateManager& gateManager) {
     if (invincibleTicks > 0 && (nextCell == 1 || nextCell == 2 || nextCell == 9)) {
         isStopped = true;
         return SNAKE_MOVE_OK;
+    } else {
+        // 무적이 끝났거나 앞에 벽이 없으면 멈춤 상태 해제
+        isStopped = false;
     }
 
-    // 멈춤 상태면 이동하지 않음
+    // 멈춤 상태면 이동하지 않음. 무적 상태인 경우
     if (isStopped) return SNAKE_MOVE_OK;
 
-    // Gate(7): 부모의 순간이동 처리 (아이템보다 우선)
+    // 부모의 순간이동 처리 (아이템보다 우선)
     if (nextCell == CELL_GATE) {
         return Snake::move(map, gateManager);
     }
     
-    // 1. Growth Item (5)인 경우
+    // Growth Item (5)인 경우
     if (nextCell == 5) {
         const std::pair<int, int> oldTail = body.back();
         const int result = Snake::move(map, gateManager);
@@ -69,7 +72,7 @@ int ItemSnake::move(Map& map, GateManager& gateManager) {
         map.setCell(oldTail.first, oldTail.second, 4);
         return 5;
     }
-    // 2. Poison Item (6)인 경우
+    // Poison Item (6)인 경우
     else if (nextCell == 6) {
         const int result = Snake::move(map, gateManager);
         if (result == -1) return -1;
@@ -85,14 +88,14 @@ int ItemSnake::move(Map& map, GateManager& gateManager) {
         }
         return 6;
     }
-    // 3. Invincible Item (11)인 경우
+    // Invincible Item (11)인 경우
     else if (nextCell == 11) {
         const int result = Snake::move(map, gateManager);
         if (result == -1) return -1;
         invincibleTicks = 50; // 5초 (50 ticks)
         return 11;
     }
-    // 4. Mystery Box (12)인 경우
+    // Mystery Box (12)인 경우
     else if (nextCell == 12) {
         const int result = Snake::move(map, gateManager);
         if (result == -1) return -1;
@@ -121,6 +124,6 @@ int ItemSnake::move(Map& map, GateManager& gateManager) {
         }
     }
     
-    // 5. 아이템이 없는 빈칸 이동의 경우 부모 로직 그대로 사용
+    // 아이템이 없는 빈칸 이동의 경우 부모 로직 그대로 사용
     return Snake::move(map, gateManager);
 }
