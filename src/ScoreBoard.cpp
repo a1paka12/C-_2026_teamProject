@@ -135,12 +135,12 @@ void ScoreBoard::draw(int originCol, int originRow, int gateRespawnCountdown) co
         init_pair(11, COLOR_YELLOW, COLOR_BLACK);
     }
 
-    // 경과 시간을 MM:SS 형태로 변환
-    int mm = elapsedSeconds / 60;
-    int ss = elapsedSeconds % 60;
+    // 경과 시간을 MM:SS 형태로 변환 (한 번 계산해서 그대로 사용 → const)
+    const int mm = elapsedSeconds / 60;
+    const int ss = elapsedSeconds % 60;
 
-    int y = originRow;
-    int x = originCol;
+    int y = originRow;          // 줄마다 ++ 하므로 변경 가능
+    const int x = originCol;    // 열은 고정
 
     // ── 상단 제목 영역 ──
     if (useColor) attron(COLOR_PAIR(10));
@@ -179,11 +179,11 @@ void ScoreBoard::draw(int originCol, int originRow, int gateRespawnCountdown) co
     // ── 점수 테이블 헤더 ──
     mvprintw(y++, x, "| Type      Now        Goal     Clear  |");
 
-    // 각 항목의 달성 여부를 미리 계산
-    bool bClear = isBodyClear();
-    bool gClear = isGrowthClear();
-    bool pClear = isPoisonClear();
-    bool gtClear = isGateClear();
+    // 각 항목의 달성 여부를 미리 계산 (그 뒤로는 읽기만 함 → const)
+    const bool bClear = isBodyClear();
+    const bool gClear = isGrowthClear();
+    const bool pClear = isPoisonClear();
+    const bool gtClear = isGateClear();
 
     // Body의 Now 열: "현재 길이 / 최대 길이" 형태
     char bodyNow[32];
@@ -194,7 +194,7 @@ void ScoreBoard::draw(int originCol, int originRow, int gateRespawnCountdown) co
     auto row = [&](const char* label, const char* nowStr, int goal, bool cleared) {
         const char* mark = cleared ? "[V]" : "[ ]";
         if (useColor) {
-            int pair = cleared ? 9 : 10;
+            const int pair = cleared ? 9 : 10;  // 행을 그리는 동안 색은 고정
             attron(COLOR_PAIR(pair));
             if (cleared) attron(A_BOLD);
             mvprintw(y++, x, "| %-9s %-10s %-7d %-7s |", label, nowStr, goal, mark);
@@ -285,9 +285,9 @@ void ScoreBoard::drawClearPopup(int mapWidth, int mapHeight, bool isFinalStage) 
     // 구분선
     mvprintw(y++, cx, "|                            |");
 
-    // 경과 시간
-    int mm = elapsedSeconds / 60;
-    int ss = elapsedSeconds % 60;
+    // 경과 시간 (한 번만 계산해서 사용)
+    const int mm = elapsedSeconds / 60;
+    const int ss = elapsedSeconds % 60;
     char timeLine[40];
     std::snprintf(timeLine, sizeof(timeLine), "   Time   : %02d:%02d", mm, ss);
     mvprintw(y++, cx, "| %-27s|", timeLine);
@@ -356,9 +356,9 @@ void ScoreBoard::drawGameOverPopup(int mapWidth, int mapHeight) const {
     mvprintw(y++, cx, "|        GAME OVER!          |");
     mvprintw(y++, cx, "|                            |");
 
-    // 경과 시간
-    int mm = elapsedSeconds / 60;
-    int ss = elapsedSeconds % 60;
+    // 경과 시간 (한 번만 계산)
+    const int mm = elapsedSeconds / 60;
+    const int ss = elapsedSeconds % 60;
     char timeLine[40];
     std::snprintf(timeLine, sizeof(timeLine), "   Time   : %02d:%02d", mm, ss);
     mvprintw(y++, cx, "| %-27s|", timeLine);

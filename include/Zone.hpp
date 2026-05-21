@@ -35,14 +35,15 @@ public:
 private:
     std::vector<ZonePatch> zones;  // 현재 활성 존 목록
 
-    int maxZones = 2;       // 맵에 동시에 둘 수 있는 패치 개수
-    int maxLifetime = 55;   // 패치 유지 틱 (약 5.5초, 루프 100ms 기준)
-    int patchSize = 2;      // 패치 한 변 타일 수 (2x2)
+    // 한 번 초기화하면 게임 내내 안 바뀌는 설정값 → const 멤버
+    const int maxZones = 2;       // 맵에 동시에 둘 수 있는 패치 개수
+    const int maxLifetime = 55;   // 패치 유지 틱 (약 5.5초, 루프 100ms 기준)
+    const int patchSize = 2;      // 패치 한 변 타일 수 (2x2)
 
     void spawnZone(Map& map);
-    bool canPlacePatch(Map& map, int y, int x, int size) const;
-    void applyPatch(Map& map, const ZonePatch& patch);   // zoneData에 타입 기록
-    void removePatch(Map& map, const ZonePatch& patch);  // zoneData 초기화
+    bool canPlacePatch(const Map& map, int y, int x, int size) const; // 맵 변경 없음
+    void applyPatch(Map& map, const ZonePatch& patch);                // zoneData에 타입 기록
+    void removePatch(Map& map, const ZonePatch& patch);               // zoneData 초기화
 };
 
 #endif

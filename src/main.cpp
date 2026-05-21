@@ -66,22 +66,36 @@ int main(int argc, char* argv[]) {
     const int scoreCol = gameMap.getWidth() * 2 + 2;
 
     // ── 하단 알림 (맵 아래 한 줄: 존·아이템·미스터리·빨간 블록·속도 변화) ──
-    // 맵 draw()가 COLOR_PAIR 1~18을 매 프레임 재정의하므로, 알림은 20번대만 사용
-    std::string statusMsg;
-    int statusMsgTicks = 0;
+    // 맵 draw()가 COLOR_PAIR 1~18을 매 프레임 재정의하므로, 알림은 20번대만 사용한다.
+    std::string statusMsg;        // 표시할 문구
+    int statusMsgTicks = 0;       // 남은 표시 틱 수 (0이면 안 보임)
+
+    // 메시지 종류별 색을 분리 — 발표할 때 "이 줄이 무슨 의미인지" 설명하기 쉽도록
     enum StatusStyle {
-        STATUS_DEFAULT,  // 흰 글자
-        STATUS_WARN,     // 노랑 (속도 변화 등)
-        STATUS_GOOD,     // 초록 (성장·패스트 존)
-        STATUS_BAD,      // 빨강 (독·빨간 블록)
-        STATUS_INFO      // 시안 (슬로우·무적·미스터리)
+        STATUS_DEFAULT,  // 흰  : 기본
+        STATUS_WARN,     // 노랑: 속도 변화
+        STATUS_GOOD,     // 초록: 성장·패스트 존
+        STATUS_BAD,      // 빨강: 독·빨간 블록
+        STATUS_INFO      // 시안: 슬로우·무적·미스터리
     };
     StatusStyle statusStyle = STATUS_DEFAULT;
 
+    // 메시지 1개를 띄우는 헬퍼. 새 메시지가 오면 기존 메시지를 덮어쓴다.
     auto showStatus = [&](const char* msg, int ticks = 20, StatusStyle style = STATUS_DEFAULT) {
         statusMsg = msg;
         statusMsgTicks = ticks;
         statusStyle = style;
+    };
+
+    // 스타일 → ncurses 색 페어(20~24) 매핑
+    auto styleToColorPair = [](StatusStyle style) {
+        switch (style) {
+            case STATUS_WARN: return 21;
+            case STATUS_GOOD: return 22;
+            case STATUS_BAD:  return 23;
+            case STATUS_INFO: return 24;
+            default:          return 20;
+        }
     };
 
     // 화면 전체를 다시 그리는 람다 함수 (맵 + Score Board + Gate 교체 카운트다운)
@@ -92,53 +106,57 @@ int main(int argc, char* argv[]) {
         const int gateCd = gateManager.respawnCountdown();
         scoreBoard.draw(scoreCol, 0, gateCd);
         
-        // 하단 알림 출력 (검정 배경 + 글자색 — 맵 7번(초록/초록)과 겹치지 않음)
+        // 하단 알림 출력 (검정 배경 + 글자색만 사용)
+        // - 맵 draw()가 7번을 초록/초록(Growth)로 쓰기 때문에 겹치지 않게 20번대만 사용한다
         if (!statusMsg.empty()) {
-            int statusPair = 20;
-            if (has_colors()) {
-                init_pair(20, COLOR_WHITE, COLOR_BLACK);
+            const bool color = has_colors();
+            const int statusPair = styleToColorPair(statusStyle);
+
+            if (color) {
+                // 메시지에 쓸 색 페어들을 (안전하게 매 프레임) 등록
+                init_pair(20, COLOR_WHITE,  COLOR_BLACK);
                 init_pair(21, COLOR_YELLOW, COLOR_BLACK);
-                init_pair(22, COLOR_GREEN, COLOR_BLACK);
-                init_pair(23, COLOR_RED, COLOR_BLACK);
-                init_pair(24, COLOR_CYAN, COLOR_BLACK);
-                switch (statusStyle) {
-                    case STATUS_WARN: statusPair = 21; break;
-                    case STATUS_GOOD: statusPair = 22; break;
-                    case STATUS_BAD:  statusPair = 23; break;
-                    case STATUS_INFO: statusPair = 24; break;
-                    default:          statusPair = 20; break;
-                }
+                init_pair(22, COLOR_GREEN,  COLOR_BLACK);
+                init_pair(23, COLOR_RED,    COLOR_BLACK);
+                init_pair(24, COLOR_CYAN,   COLOR_BLACK);
+
                 attron(COLOR_PAIR(statusPair) | A_BOLD);
             } else {
                 attron(A_BOLD);
             }
+
+            // 맵 바로 아래 한 줄에 메시지를 찍는다
             mvprintw(gameMap.getHeight() + 1, 0, "%s", statusMsg.c_str());
-            if (has_colors()) {
+
+            if (color) {
                 attroff(COLOR_PAIR(statusPair) | A_BOLD);
             } else {
                 attroff(A_BOLD);
             }
         }
 
-        // 무적 시간 표시 (머리 위)
-        int invTicks = snake->getInvincibleTicks();
+        // 무적 시간 표시 (머리 위에 남은 초 출력)
+        const int invTicks = snake->getInvincibleTicks();
         if (invTicks > 0) {
-            std::pair<int, int> head = snake->getHeadPos();
-            if (head.first > 0) { // 머리 위에 공간이 있는 경우 (맵 상단 경계 제외)
+            const std::pair<int, int> head = snake->getHeadPos();
+            // 머리 위에 한 줄 공간이 있을 때만 표시 (맵 상단 경계 제외)
+            if (head.first > 0) {
+                // 10틱 = 1초 → 올림 처리해서 자연수로 보이게 (예: 9틱 → 1초)
+                const int remainSec = (invTicks + 9) / 10;
                 attron(COLOR_PAIR(11) | A_BOLD);
-                // 10틱을 1초로 계산하여 남은 초 표시
-                mvprintw(head.first - 1, head.second * 2, "%d", (invTicks + 9) / 10);
+                mvprintw(head.first - 1, head.second * 2, "%d", remainSec);
                 attroff(COLOR_PAIR(11) | A_BOLD);
             }
         }
 
-        // Gate 타일 2칸 폭에 노란 배경+굵은 숫자 (자색/자색 페어는 숫자가 안 보임)
+        // Gate 교체 직전 카운트다운(1~3초)을 게이트 타일 위에 큰 숫자로 표시
+        // (자색/자색 페어는 숫자가 안 보이므로 노란 배경 페어로 덮어 씀)
         if (gateCd > 0) {
-            GatePos g1 = gateManager.getGate1();
-            GatePos g2 = gateManager.getGate2();
-            const int drawX1 = g1.x * 2;
+            const GatePos g1 = gateManager.getGate1();
+            const GatePos g2 = gateManager.getGate2();
+            const int drawX1 = g1.x * 2;   // 가로는 2칸 폭이라 *2
             const int drawX2 = g2.x * 2;
-            const chtype num = static_cast<chtype>('0' + gateCd);
+            const chtype num = static_cast<chtype>('0' + gateCd);  // '1','2','3'
             if (has_colors()) {
                 attron(COLOR_PAIR(12) | A_BOLD);
             } else {
@@ -192,21 +210,26 @@ int main(int argc, char* argv[]) {
             std::chrono::duration_cast<std::chrono::seconds>(clock::now() - gameStart).count());
         scoreBoard.setElapsedSeconds(elapsedSec);
 
-        // 속도 계산 (스테이지 경과 시간 + 아이템 + 머리 위치 존)
-        int stageElapsedSec = elapsedSec - stageStartSec;
-        int baseTimeout = 100 - (stageElapsedSec / 15) * 10;
-        std::pair<int, int> headPos = snake->getHeadPos();
-        const int headZone = gameMap.getZone(headPos.first, headPos.second);
-        const int zoneTimeoutDelta = gameMap.getZoneTimeoutDelta(headPos.first, headPos.second);
+        // ── 속도 계산 ──
+        // 다음 프레임까지 기다릴 시간(ms)을 구한다. 값이 작을수록 게임이 빨라진다.
+        // 최종 = (스테이지 기본 속도) - (아이템 보정) + (존 보정)
+        //
+        // 이번 프레임 한정으로만 쓰는 값들이라 전부 const
+        const int stageElapsedSec = elapsedSec - stageStartSec;             // 스테이지 시작 후 경과 초
+        const int baseTimeout     = 100 - (stageElapsedSec / 15) * 10;      // 15초마다 10ms씩 빨라짐
+        const std::pair<int, int> headPos = snake->getHeadPos();            // 뱀 머리 좌표
+        const int headZone        = gameMap.getZone(headPos.first, headPos.second);             // 머리가 밟은 존
+        const int zoneTimeoutDelta = gameMap.getZoneTimeoutDelta(headPos.first, headPos.second); // 존이 주는 가감속(±ms)
+
+        // 너무 빠르면 손이 못 따라가고, 너무 느리면 답답하니까 30~180ms로 클램프
         int targetTimeout = baseTimeout - speedModifierFromItems + zoneTimeoutDelta;
-        if (targetTimeout < 30) targetTimeout = 30;
+        if (targetTimeout < 30)  targetTimeout = 30;
         if (targetTimeout > 180) targetTimeout = 180;
 
+        // 머리가 새로운 존에 들어간 순간(=직전 존과 다를 때)에만 메시지를 띄운다
         if (headZone != lastHeadZone) {
-            if (headZone == ZONE_SLOW)
-                showStatus("Slow Zone", 15, STATUS_INFO);
-            else if (headZone == ZONE_FAST)
-                showStatus("Fast Zone", 15, STATUS_GOOD);
+            if (headZone == ZONE_SLOW)      showStatus("Slow Zone", 15, STATUS_INFO);
+            else if (headZone == ZONE_FAST) showStatus("Fast Zone", 15, STATUS_GOOD);
             lastHeadZone = headZone;
         }
 

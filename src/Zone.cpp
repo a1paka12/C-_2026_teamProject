@@ -12,7 +12,8 @@ ZoneManager::ZoneManager(Map& map) {
 }
 
 // 빈 칸(0)이면서 다른 존과 겹치지 않는 NxN 영역인지 검사
-bool ZoneManager::canPlacePatch(Map& map, int y, int x, int size) const {
+// (맵을 읽기만 하므로 const Map&)
+bool ZoneManager::canPlacePatch(const Map& map, int y, int x, int size) const {
     if (y < 0 || x < 0 || y + size > map.getHeight() || x + size > map.getWidth())
         return false;
     for (int dy = 0; dy < size; ++dy) {
@@ -74,23 +75,34 @@ void ZoneManager::spawnZone(Map& map) {
     const int h = map.getHeight();
     const int w = map.getWidth();
 
+    // 패치가 맵을 벗어나지 않도록 가능한 좌표 범위를 미리 계산
+    // 예: 맵 25칸, 패치 2칸 → y는 0~23 사이여야 한다 (총 24가지 선택지)
+    const int rangeY = std::max(1, h - patchSize + 1);
+    const int rangeX = std::max(1, w - patchSize + 1);
+
+    // 최대 120번 시도해서 빈 자리를 찾는다
     for (int attempt = 0; attempt < 120; ++attempt) {
-        const int y = std::rand() % std::max(1, h - patchSize + 1);
-        const int x = std::rand() % std::max(1, w - patchSize + 1);
+        const int y = std::rand() % rangeY;
+        const int x = std::rand() % rangeX;
+
         if (!canPlacePatch(map, y, x, patchSize))
-            continue;
+            continue;  // 자리에 벽·아이템·다른 존이 있으면 다시 시도
+
+        // 슬로우/패스트를 동전 던지듯 50%씩 결정
+        const int zoneType = (std::rand() % 2 == 0) ? ZONE_SLOW : ZONE_FAST;
 
         ZonePatch patch;
         patch.y = y;
         patch.x = x;
         patch.size = patchSize;
-        patch.type = (std::rand() % 2 == 0) ? ZONE_SLOW : ZONE_FAST;
+        patch.type = zoneType;
         patch.lifetimeTicks = maxLifetime;
 
         applyPatch(map, patch);
         zones.push_back(patch);
         return;
     }
+    // 120번 시도해도 자리를 못 찾으면 이번 프레임엔 그냥 패스
 }
 
 void ZoneManager::resetForNewMap(Map& map) {
