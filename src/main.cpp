@@ -42,9 +42,13 @@ int main(int argc, char* argv[]) {
         if (startStage > 4) startStage = 4;
     }
 
-    // 게임 시작 시각을 기록 (경과 시간 계산용)
+    // 시간 측정은 "스테이지별"로 한다.
+    // - stageStart: 현재 스테이지가 시작된 실제 시각
+    // - 매 프레임 (now - stageStart)를 초로 환산해 ScoreBoard에 보낸다
+    // - 스테이지 클리어 → Enter 대기 → 다음 스테이지 진입 시 stageStart를 다시 now()로 리셋
+    //   (Enter 누르고 있던 시간이 다음 스테이지 시간에 더해지지 않도록 하기 위함)
     using clock = std::chrono::steady_clock;
-    const auto gameStart = clock::now();
+    auto stageStart = clock::now();
 
     // 시작 스테이지 맵 로드 및 게임 객체 생성
     Map gameMap(kStageMaps[startStage]);
@@ -187,10 +191,7 @@ int main(int argc, char* argv[]) {
     int lastGateCd = -1;
     int lastPaintedSecond = -1;
     int currentTimeout = 100;
-    
-    // 스테이지 시작 시간 (속도 계산용)
-    int stageStartSec = 0;
-    
+
     // 아이템 효과에 의한 속도 조절
     int speedModifierFromItems = 0;
     int growthCountForSpeed = 0;
@@ -205,17 +206,17 @@ int main(int argc, char* argv[]) {
         if (statusMsgTicks > 0) statusMsgTicks--;
         else statusMsg.clear();
 
-        // 게임 경과 시간을 Score Board에 반영
-        const int elapsedSec = static_cast<int>(
-            std::chrono::duration_cast<std::chrono::seconds>(clock::now() - gameStart).count());
-        scoreBoard.setElapsedSeconds(elapsedSec);
+        // 현재 스테이지가 시작된 뒤로 흐른 초를 계산해 Score Board에 반영
+        // (스테이지가 바뀌면 stageStart가 now()로 리셋되어 자동으로 00:00부터 다시 시작)
+        const int stageElapsedSec = static_cast<int>(
+            std::chrono::duration_cast<std::chrono::seconds>(clock::now() - stageStart).count());
+        scoreBoard.setElapsedSeconds(stageElapsedSec);
 
         // ── 속도 계산 ──
         // 다음 프레임까지 기다릴 시간(ms)을 구한다. 값이 작을수록 게임이 빨라진다.
         // 최종 = (스테이지 기본 속도) - (아이템 보정) + (존 보정)
         //
         // 이번 프레임 한정으로만 쓰는 값들이라 전부 const
-        const int stageElapsedSec = elapsedSec - stageStartSec;             // 스테이지 시작 후 경과 초
         const int baseTimeout     = 100 - (stageElapsedSec / 15) * 10;      // 15초마다 10ms씩 빨라짐
         const std::pair<int, int> headPos = snake->getHeadPos();            // 뱀 머리 좌표
         const int headZone        = gameMap.getZone(headPos.first, headPos.second);             // 머리가 밟은 존
@@ -337,7 +338,11 @@ int main(int argc, char* argv[]) {
 
             // ── 미션 달성 체크 ──
             if (scoreBoard.isMissionClear()) {
-                bool isFinal = (scoreBoard.getStage() >= 4);
+                const bool isFinal = (scoreBoard.getStage() >= 4);
+
+                // 이 스테이지의 최종 클리어 시간을 ScoreBoard에 한 번 더 박아넣는다.
+                // (이렇게 해두면 Enter 대기 동안 표시되는 시간이 흘러가지 않는다)
+                scoreBoard.setElapsedSeconds(stageElapsedSec);
 
                 // 화면에 맵 + Score Board + 클리어 팝업을 출력
                 clear();
@@ -379,9 +384,14 @@ int main(int argc, char* argv[]) {
                 scoreBoard.resetForNewStage(snake->getLength());
                 tick = 0;
                 redraw = true;
-                
-                // 속도 및 스테이지 시작 시간 초기화
-                stageStartSec = elapsedSec;
+
+                // 시간 측정 리셋: 다음 스테이지는 00:00부터 다시 시작
+                // (Enter 누르고 있던 시간은 자연스럽게 무시된다)
+                stageStart = clock::now();
+                scoreBoard.setElapsedSeconds(0);
+                lastPaintedSecond = -1;  // 화면도 강제로 다시 그리도록
+
+                // 속도 관련 상태도 초기화
                 speedModifierFromItems = 0;
                 growthCountForSpeed = 0;
                 poisonCountForSpeed = 0;
@@ -414,9 +424,9 @@ int main(int argc, char* argv[]) {
         }
 
         // 맵/뱀 변화 또는 시간 변화가 있을 때만 화면을 다시 그린다.
-        const bool timeTick = (elapsedSec != lastPaintedSecond);
+        const bool timeTick = (stageElapsedSec != lastPaintedSecond);
         if (redraw || timeTick) {
-            lastPaintedSecond = elapsedSec;
+            lastPaintedSecond = stageElapsedSec;
             paintUi();
         }
 

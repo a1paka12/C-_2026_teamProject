@@ -285,11 +285,11 @@ void ScoreBoard::drawClearPopup(int mapWidth, int mapHeight, bool isFinalStage) 
     // 구분선
     mvprintw(y++, cx, "|                            |");
 
-    // 경과 시간 (한 번만 계산해서 사용)
+    // 이 스테이지에 걸린 시간 (스테이지 시작 시점부터 클리어까지)
     const int mm = elapsedSeconds / 60;
     const int ss = elapsedSeconds % 60;
     char timeLine[40];
-    std::snprintf(timeLine, sizeof(timeLine), "   Time   : %02d:%02d", mm, ss);
+    std::snprintf(timeLine, sizeof(timeLine), "   Stage Time : %02d:%02d", mm, ss);
     mvprintw(y++, cx, "| %-27s|", timeLine);
 
     // Body: 현재길이 / 최대길이 (목표)
