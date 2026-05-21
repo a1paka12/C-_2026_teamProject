@@ -22,6 +22,7 @@ const char* kStageMaps[] = {
     "data/map2.txt",  // Stage 2
     "data/map3.txt",  // Stage 3
     "data/map4.txt",  // Stage 4
+    "data/map5.txt",  // Stage 5
 };
 
 } // namespace
@@ -39,7 +40,7 @@ int main(int argc, char* argv[]) {
     if (argc >= 2) {
         startStage = std::atoi(argv[1]);
         if (startStage < 1) startStage = 1;
-        if (startStage > 4) startStage = 4;
+        if (startStage > 5) startStage = 5;
     }
 
     // 시간 측정은 "스테이지별"로 한다.
@@ -338,11 +339,13 @@ int main(int argc, char* argv[]) {
 
             // ── 미션 달성 체크 ──
             if (scoreBoard.isMissionClear()) {
-                const bool isFinal = (scoreBoard.getStage() >= 4);
+                const bool isFinal = (scoreBoard.getStage() >= 5);
 
                 // 이 스테이지의 최종 클리어 시간을 ScoreBoard에 한 번 더 박아넣는다.
                 // (이렇게 해두면 Enter 대기 동안 표시되는 시간이 흘러가지 않는다)
                 scoreBoard.setElapsedSeconds(stageElapsedSec);
+                // 클리어 시간을 랭킹 기록에 저장한다.
+                scoreBoard.finishStageTimer();
 
                 // 화면에 맵 + Score Board + 클리어 팝업을 출력
                 clear();
@@ -435,6 +438,8 @@ int main(int argc, char* argv[]) {
 
     // ── 게임 오버 처리 (빨간색 팝업) ──
     if (gameOver) {
+        // 사망한 스테이지를 F로 기록한다.
+        scoreBoard.markStageFailed();
         clear();
         gameMap.draw(redWall.mapDrawBlinkPhase());
         redWall.drawOverlay();
