@@ -71,7 +71,6 @@ GateManager::GateManager(Map& map)
     : map(map), gate1{-1, -1}, gate2{-1, -1}, active(false), lastSpawn(std::chrono::steady_clock::now()),
       passageActive(false), passagePauseStart(std::chrono::steady_clock::now()), passageMovesLeft(0)
 {
-    std::srand(static_cast<unsigned>(std::time(nullptr)));
 }
 
 // ---------------------------------------------------------------

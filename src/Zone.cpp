@@ -5,7 +5,6 @@
 
 // 게임 시작·스테이지 전환 시 맵에 초기 존 배치
 ZoneManager::ZoneManager(Map& map) {
-    std::srand(static_cast<unsigned>(std::time(nullptr)) + 12345u);
     for (int i = 0; i < maxZones; ++i) {
         spawnZone(map);
     }

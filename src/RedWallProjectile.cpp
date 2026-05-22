@@ -9,7 +9,6 @@
 
 RedWallProjectileManager::RedWallProjectileManager(Map& map)
     : map_(map), idleSince_(std::chrono::steady_clock::now()) {
-    std::srand(static_cast<unsigned>(std::time(nullptr)));
 }
 
 void RedWallProjectileManager::resetForNewMap(Map& map) {

@@ -28,6 +28,9 @@ const char* kStageMaps[] = {
 } // namespace
 
 int main(int argc, char* argv[]) {
+    // 난수 생성기 초기화 (프로그램 시작 시 1번만 실행)
+    std::srand(static_cast<unsigned>(std::time(nullptr)));
+
     // ncurses 초기화
     initscr();
     start_color();

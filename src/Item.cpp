@@ -3,7 +3,6 @@
 #include <ctime>
 
 ItemManager::ItemManager(Map& map) {
-    std::srand(std::time(nullptr));
     // 초기 아이템들을 생성
     for (int i = 0; i < maxItems; ++i) {
         spawnItem(map);
