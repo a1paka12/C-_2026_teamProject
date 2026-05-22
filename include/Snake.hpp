@@ -24,7 +24,7 @@ public:
     virtual ~Snake() = default;
 
     // 생성자: 맵을 분석하여 초기 뱀의 위치와 방향을 설정합니다.
-    Snake(Map& map);
+    Snake(const Map& map);
 
     // 사용자의 입력을 받아 방향을 업데이트합니다.
     // 반대 방향키를 눌러서 죽은 경우 false를 반환합니다.
@@ -52,7 +52,7 @@ protected:
     bool alive;
 
     // 맵 데이터에서 3(머리), 4(몸통)를 찾아 body에 넣고 초기 방향을 계산하는 함수
-    void initializeFromMap(Map& map);
+    void initializeFromMap(const Map& map);
 };
 
 #endif

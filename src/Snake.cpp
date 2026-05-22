@@ -4,18 +4,18 @@
 #include <vector>
 #include <cmath>
 
-Snake::Snake(Map& map) : currentDir(LEFT), alive(true) {
+Snake::Snake(const Map& map) : currentDir(LEFT), alive(true) {
     initializeFromMap(map);
 }
 
-void Snake::initializeFromMap(Map& map) {
+void Snake::initializeFromMap(const Map& map) {
     int headY = -1, headX = -1;
     std::vector<std::pair<int, int>> tails;
     
     // 맵 전체를 순회하며 머리(3)와 몸통(4)의 위치를 찾습니다.
     for (int y = 0; y < map.getHeight(); ++y) {
         for (int x = 0; x < map.getWidth(); ++x) {
-            int cell = map.getCell(y, x);
+            const int cell = map.getCell(y, x);
             if (cell == 3) {
                 headY = y;
                 headX = x;
@@ -48,8 +48,8 @@ void Snake::initializeFromMap(Map& map) {
         
         // 첫 번째 몸통을 기준으로 머리가 어디를 향하고 있는지 계산하여 초기 방향 설정
         if (body.size() >= 2) {
-            int dy = body[0].first - body[1].first;
-            int dx = body[0].second - body[1].second;
+            const int dy = body[0].first - body[1].first;
+            const int dx = body[0].second - body[1].second;
             if (dy == -1) currentDir = UP;
             else if (dy == 1) currentDir = DOWN;
             else if (dx == -1) currentDir = LEFT;
@@ -85,8 +85,8 @@ bool Snake::updateDirection(int ch) {
 int Snake::move(Map& map, GateManager& gateManager) {
     if (!alive) return -1;
     
-    int headY = body.front().first;
-    int headX = body.front().second;
+    const int headY = body.front().first;
+    const int headX = body.front().second;
     
     int nextY = headY;
     int nextX = headX;
@@ -97,7 +97,7 @@ int Snake::move(Map& map, GateManager& gateManager) {
     else if (currentDir == RIGHT) nextX++;
     
     // 다음 칸이 무엇인지 확인
-    int nextCell = map.getCell(nextY, nextX);
+    const int nextCell = map.getCell(nextY, nextX);
 
     // 맵 밖(-1)은 이동 불가(벽으로 취급)
     if (nextCell == -1) {
@@ -122,8 +122,8 @@ int Snake::move(Map& map, GateManager& gateManager) {
 
         gateManager.beginGatePassage(static_cast<int>(body.size()));
 
-        int tailY = body.back().first;
-        int tailX = body.back().second;
+        const int tailY = body.back().first;
+        const int tailX = body.back().second;
         map.setCell(tailY, tailX, 0);
         body.pop_back();
 
@@ -155,8 +155,8 @@ int Snake::move(Map& map, GateManager& gateManager) {
     map.setCell(headY, headX, 4);
     
     // 꼬리 자르기
-    int tailY = body.back().first;
-    int tailX = body.back().second;
+    const int tailY = body.back().first;
+    const int tailX = body.back().second;
     map.setCell(tailY, tailX, 0); // 맵에서 지움
     body.pop_back(); // 덱에서 제거
     
