@@ -29,7 +29,8 @@ bool ZoneManager::canPlacePatch(const Map& map, int y, int x, int size) const {
 }
 
 // Map의 zoneData 레이어에 슬로우/패스트 표시 (바닥 셀 값 0은 유지)
-void ZoneManager::applyPatch(Map& map, const ZonePatch& patch) {
+// ZoneManager 자신의 멤버는 안 바꾸므로 const 멤버 함수
+void ZoneManager::applyPatch(Map& map, const ZonePatch& patch) const {
     for (int dy = 0; dy < patch.size; ++dy) {
         for (int dx = 0; dx < patch.size; ++dx) {
             map.setZone(patch.y + dy, patch.x + dx, patch.type);
@@ -37,7 +38,7 @@ void ZoneManager::applyPatch(Map& map, const ZonePatch& patch) {
     }
 }
 
-void ZoneManager::removePatch(Map& map, const ZonePatch& patch) {
+void ZoneManager::removePatch(Map& map, const ZonePatch& patch) const {
     for (int dy = 0; dy < patch.size; ++dy) {
         for (int dx = 0; dx < patch.size; ++dx) {
             map.setZone(patch.y + dy, patch.x + dx, ZONE_NONE);

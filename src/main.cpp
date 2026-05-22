@@ -13,7 +13,7 @@
 #include "RedWallProjectile.hpp"
 #include "Zone.hpp"
 
-// 스테이지별 맵 파일 경로 (Stage 1~4)
+// 스테이지별 맵 파일 경로 (Stage 1~5)
 namespace {
 
 const char* kStageMaps[] = {
@@ -283,8 +283,9 @@ int main(int argc, char* argv[]) {
         if (tick % 3 == 0) {
             snakeStep = true;
             // Gate 통과 여부를 감지하기 위해 이동 전 상태를 저장
-            bool wasPassage = gateManager.isPassageActive();
-            int moveResult = snake->move(gameMap, gateManager);
+            // (이 이동 한 번 동안 안 바뀌는 값들이라 const)
+            const bool wasPassage = gateManager.isPassageActive();
+            const int moveResult = snake->move(gameMap, gateManager);
 
             // 이동 결과가 사망이면 게임 오버
             if (moveResult == SNAKE_MOVE_DEAD) {
@@ -361,7 +362,7 @@ int main(int argc, char* argv[]) {
                 // Enter 키 입력 대기
                 timeout(-1);
                 while (true) {
-                    int endCh = getch();
+                    const int endCh = getch();
                     if (endCh == '\n' || endCh == '\r' || endCh == KEY_ENTER) break;
                 }
 
@@ -453,7 +454,7 @@ int main(int argc, char* argv[]) {
         // Enter 키 입력 대기 후 종료
         timeout(-1);
         while (true) {
-            int endCh = getch();
+            const int endCh = getch();
             if (endCh == '\n' || endCh == '\r' || endCh == KEY_ENTER) break;
         }
     }

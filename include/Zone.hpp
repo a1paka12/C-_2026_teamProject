@@ -40,10 +40,10 @@ private:
     const int maxLifetime = 55;   // 패치 유지 틱 (약 5.5초, 루프 100ms 기준)
     const int patchSize = 2;      // 패치 한 변 타일 수 (2x2)
 
-    void spawnZone(Map& map);
-    bool canPlacePatch(const Map& map, int y, int x, int size) const; // 맵 변경 없음
-    void applyPatch(Map& map, const ZonePatch& patch);                // zoneData에 타입 기록
-    void removePatch(Map& map, const ZonePatch& patch);               // zoneData 초기화
+    void spawnZone(Map& map);                                                // zones 목록 변경 (비-const)
+    bool canPlacePatch(const Map& map, int y, int x, int size) const;        // 맵·매니저 둘 다 읽기만
+    void applyPatch(Map& map, const ZonePatch& patch) const;                 // 맵만 변경, 매니저 자신은 그대로
+    void removePatch(Map& map, const ZonePatch& patch) const;                // 맵만 변경, 매니저 자신은 그대로
 };
 
 #endif

@@ -10,7 +10,7 @@ static const int kThresholds[5][4] = {
     {  45,  75, 105, 135 },  // Stage 2
     {  50,  85, 115, 145 },  // Stage 3
     {  55,  90, 120, 150 },  // Stage 4
-    {  65, 100, 135, 165 },  // Stage 5
+    {  65, 100,135, 165 },  // Stage 5
 };
 
 static const char* kGradeLabels[] = { "A+", "A0", "B+", "B0", "C ", "F ", "--" };
@@ -111,18 +111,19 @@ const char* ScoreBoard::computeGrade(int stageIdx1, int seconds) {
 
 const char* ScoreBoard::getStageGrade(int stageIdx1) const {
     if (stageIdx1 < 1 || stageIdx1 > 5) return "--";
-    int t = stageTimes[stageIdx1 - 1];
+    // 한 번 읽어와서 분기에만 쓰고 끝나므로 const
+    const int t = stageTimes[stageIdx1 - 1];
     if (t == -2) return "F ";
     if (t <   0) return "--";
     return computeGrade(stageIdx1, t);
 }
 
 const char* ScoreBoard::getOverallGrade() const {
-    int worst = -1;
+    int worst = -1;  // 갱신되므로 비-const
     for (int i = 0; i < 5; ++i) {
-        int t = stageTimes[i];
-        if (t == -1) continue;  // 미진입은 제외
-        int r = (t == -2) ? 5 : gradeRank(computeGrade(i + 1, t));
+        const int t = stageTimes[i];                                       // 이 회차의 기록 (안 바뀜)
+        if (t == -1) continue;                                             // 미진입은 제외
+        const int r = (t == -2) ? 5 : gradeRank(computeGrade(i + 1, t));   // 등급 순위 (안 바뀜)
         if (r > worst) worst = r;
     }
     if (worst < 0) return "--";
@@ -278,7 +279,8 @@ void ScoreBoard::draw(int originCol, int originRow, int gateRespawnCountdown) co
     if (useColor) attroff(COLOR_PAIR(10));
 
     for (int i = 1; i <= 5; ++i) {
-        int t = stageTimes[i - 1];
+        // 이 한 행을 그리는 동안 안 바뀌는 값들이라 const
+        const int t = stageTimes[i - 1];
         const char* grade = getStageGrade(i);
 
         // 시간 문자열 생성

@@ -30,7 +30,8 @@ void Map::loadFromFile(const std::string& filePath) {
         if (line.empty()) continue;
         std::vector<int> row;
         std::vector<int> zoneRow;
-        for (char c : line) {
+        // 라인의 각 문자를 const 참조로 읽기만 한다 (변경 없음)
+        for (const char c : line) {
             if (isdigit(c)) {
                 row.push_back(c - '0');
                 zoneRow.push_back(ZONE_NONE);
@@ -89,9 +90,10 @@ void Map::draw(int boundaryRedBlinkPhase) const {
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-            int val = data[y][x];
+            // 한 칸을 그리는 동안 안 바뀌는 값들이라 const
+            const int val = data[y][x];
             const int zone = getZone(y, x);
-            int drawX = x * 2; // 가로 비율을 맞추기 위해 x좌표 2배
+            const int drawX = x * 2; // 가로 비율을 맞추기 위해 x좌표 2배
 
             // 빈 바닥(0) 위에 존 색만 덮어 그림 (뱀·아이템 셀은 아래 switch에서 처리)
             if (val == 0 && zone != ZONE_NONE) {
