@@ -25,7 +25,7 @@ pacman -S --needed --noconfirm mingw-w64-ucrt-x86_64-ncurses || true
 echo "Building snake.exe..."
 "$GXX" -std=c++17 -Wall -g -Iinclude -I"$INC" \
   src/main.cpp src/Map.cpp src/RedWallProjectile.cpp src/Gate.cpp src/Snake.cpp src/ItemSnake.cpp \
-  src/Item.cpp src/ScoreBoard.cpp \
+  src/Item.cpp src/ScoreBoard.cpp src/Zone.cpp \
   -L"$LIB" -lncursesw -o snake.exe
 
 echo "Running ./snake.exe ..."

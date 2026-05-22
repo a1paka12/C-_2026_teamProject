@@ -43,11 +43,11 @@ public:
 
     // 뱀 머리가 Gate 위치에 있는지 확인하고, 있다면 출구 좌표와 진출 방향을 반환
     // 반환값: true = Gate 통과, outY/outX = 나오는 위치, outDir = 나오는 방향
-    bool checkGateCollision(int headY, int headX, Direction enterDir,
+    bool checkGateCollision(const int headY, const int headX, const Direction enterDir,
                             int& outY, int& outX, Direction& outDir) const;
 
     // Gate 순간이동 직전에 호출 (snake 길이만큼 이동이 끝날 때까지 통과 구간으로 본다)
-    void beginGatePassage(int snakeSegmentCount);
+    void beginGatePassage(const int snakeSegmentCount);
 
     // 뱀이 실제로 1칸 이동을 마칠 때마다 호출 (통과 구간 종료 시 20초 타이머 보정)
     void afterSnakeMove();
@@ -76,11 +76,11 @@ private:
     int passageMovesLeft;
 
     // pos가 벽의 어느 면에 붙어 있는지 판단해 진출 방향을 결정
-    Direction exitDirection(const GatePos& gatePos, Direction enterDir) const;
+    Direction exitDirection(const GatePos& gatePos, const Direction enterDir) const;
 
     // 출구 Gate 바깥쪽 한 칸(빈 공간)의 좌표를 계산
     // 만약 바깥이 벽이면 같은 Gate 위치를 반환(방향 우선순위로 재시도)
-    std::pair<int,int> outsideCell(const GatePos& gatePos, Direction dir) const;
+    std::pair<int,int> outsideCell(const GatePos& gatePos, const Direction dir) const;
 };
 
 #endif

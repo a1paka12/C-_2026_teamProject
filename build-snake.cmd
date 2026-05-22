@@ -31,7 +31,7 @@ echo.
 echo Building snake.exe...
 "%MSYS2_ROOT%\ucrt64\bin\g++.exe" -std=c++17 -Wall -g -Iinclude -I"%MSYS2_ROOT%\ucrt64\include\ncursesw" ^
   src\main.cpp src\Map.cpp src\RedWallProjectile.cpp src\Gate.cpp src\Snake.cpp src\ItemSnake.cpp ^
-  src\Item.cpp src\ScoreBoard.cpp ^
+  src\Item.cpp src\ScoreBoard.cpp src\Zone.cpp ^
   -L"%MSYS2_ROOT%\ucrt64\lib" -lncursesw -o snake.exe
 if errorlevel 1 (
   echo [ERROR] Build failed.

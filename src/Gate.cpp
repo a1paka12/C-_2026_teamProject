@@ -5,7 +5,7 @@
 #include <utility>
 #include <chrono>
 
-static inline Direction Opposite(Direction d) {
+static inline Direction Opposite(const Direction d) {
     switch (d) {
         case UP: return DOWN;
         case DOWN: return UP;
@@ -16,7 +16,7 @@ static inline Direction Opposite(Direction d) {
 }
 
 // Clockwise: UP->RIGHT->DOWN->LEFT
-static inline Direction Clockwise(Direction d) {
+static inline Direction Clockwise(const Direction d) {
     switch (d) {
         case UP: return RIGHT;
         case RIGHT: return DOWN;
@@ -27,7 +27,7 @@ static inline Direction Clockwise(Direction d) {
 }
 
 // Counterclockwise: UP->LEFT->DOWN->RIGHT
-static inline Direction CounterClockwise(Direction d) {
+static inline Direction CounterClockwise(const Direction d) {
     switch (d) {
         case UP: return LEFT;
         case LEFT: return DOWN;
@@ -37,7 +37,7 @@ static inline Direction CounterClockwise(Direction d) {
     }
 }
 
-static inline int DY(Direction d) {
+static inline int DY(const Direction d) {
     switch (d) {
         case UP: return -1;
         case DOWN: return 1;
@@ -47,7 +47,7 @@ static inline int DY(Direction d) {
     }
 }
 
-static inline int DX(Direction d) {
+static inline int DX(const Direction d) {
     switch (d) {
         case UP: return 0;
         case DOWN: return 0;
@@ -58,7 +58,7 @@ static inline int DX(Direction d) {
 }
 
 // 맵 패딩(예: 확장 후 값 9)은 통과 불가. Gate 진출 목적지 또한 이동 불가 블록이면 선택하지 않음.
-static inline bool isExitDestinationCell(int cell) {
+static inline bool isExitDestinationCell(const int cell) {
     if (cell == 1 || cell == 2 || cell == CELL_GATE || cell == 9)
         return false;
     return true;
@@ -152,7 +152,7 @@ int GateManager::respawnCountdown() const {
     return static_cast<int>(sec);
 }
 
-void GateManager::beginGatePassage(int snakeSegmentCount) {
+void GateManager::beginGatePassage(const int snakeSegmentCount) {
     if (!passageActive) {
         passageActive = true;
         passagePauseStart = std::chrono::steady_clock::now();
@@ -194,7 +194,7 @@ void GateManager::removeGates() {
 //   1) 진출 가능한 인접 칸이 오직 하나이면 (= 외벽 Gate) 무조건 그 방향(맵 플레이 안쪽 고정과 동등)
 //   2) 둘 이상 후보면 Middle Gate 로 간주, Entry 우선순위(직진→시계→반시계→후진)로 탐험 가능한 방향 선택
 // ---------------------------------------------------------------
-Direction GateManager::exitDirection(const GatePos& gatePos, Direction enterDir) const {
+Direction GateManager::exitDirection(const GatePos& gatePos, const Direction enterDir) const {
     int h = map.getHeight();
     int w = map.getWidth();
 
@@ -247,7 +247,7 @@ Direction GateManager::exitDirection(const GatePos& gatePos, Direction enterDir)
 //   Gate 위치에서 dir 방향으로 한 칸 나간 좌표를 계산.
 //   exitDirection에서 이미 통과 가능한 dir을 선정하므로 여기서는 1칸만 계산.
 // ---------------------------------------------------------------
-std::pair<int,int> GateManager::outsideCell(const GatePos& gatePos, Direction dir) const {
+std::pair<int,int> GateManager::outsideCell(const GatePos& gatePos, const Direction dir) const {
     int ny = gatePos.y + DY(dir);
     int nx = gatePos.x + DX(dir);
     if (ny < 0 || ny >= map.getHeight() || nx < 0 || nx >= map.getWidth()) {
@@ -267,7 +267,7 @@ std::pair<int,int> GateManager::outsideCell(const GatePos& gatePos, Direction di
 //     - true 반환
 //   일치하지 않으면 false 반환
 // ---------------------------------------------------------------
-bool GateManager::checkGateCollision(int headY, int headX, Direction enterDir,
+bool GateManager::checkGateCollision(const int headY, const int headX, const Direction enterDir,
                                      int& outY, int& outX, Direction& outDir) const {
     if (!active) return false;
 
