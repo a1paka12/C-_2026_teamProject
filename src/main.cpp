@@ -298,35 +298,47 @@ int main(int argc, char* argv[]) {
             if (moveResult == SNAKE_MOVE_GROWTH) {
                 scoreBoard.addGrowth();
                 growthCountForSpeed++;
+                bool speedChanged = false;
                 if (growthCountForSpeed >= 4) {
                     growthCountForSpeed = 0;
                     speedModifierFromItems += 10;
+                    speedChanged = true;
                 }
-                showStatus("Growth! Length +1", 20, STATUS_GOOD);
+                if (speedChanged) showStatus("Growth! (+1) & Speed Up!", 30, STATUS_WARN);
+                else showStatus("Growth! Length +1", 20, STATUS_GOOD);
             } else if (moveResult == SNAKE_MOVE_MYSTERY_GROWTH) {
                 scoreBoard.addGrowth();
                 growthCountForSpeed++;
+                bool speedChanged = false;
                 if (growthCountForSpeed >= 4) {
                     growthCountForSpeed = 0;
                     speedModifierFromItems += 10;
+                    speedChanged = true;
                 }
-                showStatus("Mystery Box: Growth! (+1)", 22, STATUS_INFO);
+                if (speedChanged) showStatus("Mystery Box: Growth! (+1) & Speed Up!", 30, STATUS_WARN);
+                else showStatus("Mystery Box: Growth! (+1)", 22, STATUS_INFO);
             } else if (moveResult == SNAKE_MOVE_POISON) {
                 scoreBoard.addPoison();
                 poisonCountForSpeed++;
+                bool speedChanged = false;
                 if (poisonCountForSpeed >= 3) {
                     poisonCountForSpeed = 0;
                     speedModifierFromItems -= 10;
+                    speedChanged = true;
                 }
-                showStatus("Poison! Length -1", 20, STATUS_BAD);
+                if (speedChanged) showStatus("Poison! (-1) & Speed Down!", 30, STATUS_WARN);
+                else showStatus("Poison! Length -1", 20, STATUS_BAD);
             } else if (moveResult == SNAKE_MOVE_MYSTERY_POISON) {
                 scoreBoard.addPoison();
                 poisonCountForSpeed++;
+                bool speedChanged = false;
                 if (poisonCountForSpeed >= 3) {
                     poisonCountForSpeed = 0;
                     speedModifierFromItems -= 10;
+                    speedChanged = true;
                 }
-                showStatus("Mystery Box: Poison! (-1)", 22, STATUS_INFO);
+                if (speedChanged) showStatus("Mystery Box: Poison! (-1) & Speed Down!", 30, STATUS_WARN);
+                else showStatus("Mystery Box: Poison! (-1)", 22, STATUS_INFO);
             } else if (moveResult == SNAKE_MOVE_INVINCIBLE) {
                 showStatus("Invincible! (5s)", 22, STATUS_INFO);
             } else if (moveResult == SNAKE_MOVE_MYSTERY_INVINCIBLE) {
