@@ -1,3 +1,4 @@
+// 아이템 획득 시의 특수 효과(길이 변화, 무적 등)를 처리하는 ItemSnake 클래스 구현부
 #include "ItemSnake.hpp"
 #include "Gate.hpp"
 #include "Snake.hpp"  // SNAKE_MOVE_* 상수 사용을 위해 포함

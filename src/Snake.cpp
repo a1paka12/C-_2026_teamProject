@@ -1,3 +1,4 @@
+// 뱀의 초기화, 입력에 따른 방향 전환, 이동 및 사망 판정 로직 구현부
 #include "Snake.hpp"
 #include "Gate.hpp"
 #include <ncurses.h>
@@ -80,7 +81,7 @@ bool Snake::updateDirection(int ch) {
     }
     return true;
 }
-// (수정) Phase 3: 자식 클래스(ItemSnake)와 반환형을 맞추고, 아이템 상태값을 구별하기 위해 
+// 자식 클래스(ItemSnake)와 반환형을 맞추고, 아이템 상태값을 구별하기 위해 
 // 기존 bool 반환형을 int(-1: 사망, 0: 정상 이동)로 변경.
 int Snake::move(Map& map, GateManager& gateManager) {
     if (!alive) return -1;

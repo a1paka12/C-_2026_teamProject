@@ -1,3 +1,4 @@
+// 기본 Snake 클래스를 상속받아 아이템 효과 및 특수 충돌 로직이 추가된 확장 클래스 헤더
 #ifndef ITEM_SNAKE_HPP
 #define ITEM_SNAKE_HPP
 

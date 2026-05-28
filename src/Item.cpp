@@ -1,3 +1,4 @@
+// 아이템의 무작위 생성, 수명 체크 및 획득 처리를 담당하는 ItemManager 클래스 구현부
 #include "Item.hpp"
 #include <cstdlib>
 #include <ctime>

@@ -1,3 +1,4 @@
+// 빨간 벽 발사체의 생성, 이동 및 뱀과의 충돌 감지 로직 구현부
 #include "RedWallProjectile.hpp"
 #include "ItemSnake.hpp"
 #include "Gate.hpp"

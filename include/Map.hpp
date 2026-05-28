@@ -1,3 +1,4 @@
+// 게임 맵 로드, 렌더링, 셀 데이터 및 속도 존(Zone) 관리를 담당하는 클래스 헤더
 #ifndef MAP_H
 #define MAP_H
 

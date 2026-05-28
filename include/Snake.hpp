@@ -1,3 +1,4 @@
+// 뱀의 이동, 방향 제어, 신체 관리 등 기본적인 뱀 로직을 정의하는 클래스 헤더
 #ifndef SNAKE_HPP
 #define SNAKE_HPP
 

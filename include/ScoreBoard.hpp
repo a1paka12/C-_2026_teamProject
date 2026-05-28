@@ -1,3 +1,4 @@
+// 점수 계산, 미션 확인, 스테이지 관리 및 게임 UI 출력을 담당하는 클래스 헤더
 #ifndef SCORE_BOARD_HPP
 #define SCORE_BOARD_HPP
 

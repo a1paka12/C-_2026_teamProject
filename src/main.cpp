@@ -1,4 +1,4 @@
-//test
+// 스네이크 게임의 메인 루프, 초기화 및 게임의 전반적인 흐름을 제어하는 진입점
 #include <ncurses.h>
 #include <chrono>
 #include <memory>

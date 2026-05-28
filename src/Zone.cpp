@@ -1,3 +1,4 @@
+// 맵 상의 특정 영역(속도 존)의 생성, 유지 시간 관리 및 제거 로직 구현부
 #include "Zone.hpp"
 #include <algorithm>
 #include <cstdlib>

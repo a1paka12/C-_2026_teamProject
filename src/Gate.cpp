@@ -1,3 +1,4 @@
+// 게이트의 스폰, 제거, 방향 전환 로직 등 GateManager 클래스의 상세 구현부
 #include "Gate.hpp"
 #include <vector>
 #include <cstdlib>   // rand

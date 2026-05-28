@@ -1,3 +1,4 @@
+// 현재 점수 표시, 스테이지 등급 계산 및 클리어/게임오버 팝업 구현부
 #include "ScoreBoard.hpp"
 #include <ncurses.h>
 #include <cstdio>

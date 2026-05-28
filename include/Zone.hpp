@@ -1,3 +1,4 @@
+// 맵에 무작위로 생성되어 뱀의 속도에 영향을 주는 속도 존(슬로우/패스트) 관리 클래스 헤더
 #ifndef ZONE_HPP
 #define ZONE_HPP
 

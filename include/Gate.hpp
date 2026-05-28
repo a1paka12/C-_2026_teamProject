@@ -1,3 +1,4 @@
+// 게이트(Gate) 생성 및 관리, 뱀의 게이트 통과 로직을 담당하는 클래스 헤더
 #ifndef GATE_HPP
 #define GATE_HPP
 

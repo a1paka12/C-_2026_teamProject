@@ -1,3 +1,4 @@
+// 파일로부터 맵을 읽어오고 ncurses를 이용해 화면에 그리는 Map 클래스 구현부
 #include "Map.hpp"
 #include "RedWallProjectile.hpp"
 #include <fstream>

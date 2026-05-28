@@ -1,3 +1,4 @@
+// 맵 경계에서 발사되는 장애물인 빨간 벽 발사체(Red Wall Projectile) 관리 클래스 헤더
 #ifndef RED_WALL_PROJECTILE_HPP
 #define RED_WALL_PROJECTILE_HPP
 

@@ -1,3 +1,4 @@
+// 게임 내 아이템(성장, 독, 무적, 미스터리)의 생성 및 수명 관리 클래스 헤더
 #ifndef ITEM_HPP
 #define ITEM_HPP
 
