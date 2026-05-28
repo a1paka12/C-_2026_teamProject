@@ -52,7 +52,7 @@ void ItemManager::spawnItem(Map& map) {
             // 예시: Growth 50%, Poison 20%, Mystery 15%, Invincible 15%
             if (randVal < 50) type = 5;            // 0 ~ 49 (50%)
             else if (randVal < 70) type = 6;       // 50 ~ 69 (20%)
-            else if (randVal < 90) type = 12;      // 70 ~ 84 (15%)
+            else if (randVal < 85) type = 12;      // 70 ~ 84 (15%)
             else type = 11;                        // 85 ~ 99 (15%)
             
             const Item item = {y, x, type, maxLifetime};
