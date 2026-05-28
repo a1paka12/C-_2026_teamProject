@@ -84,7 +84,7 @@ void Map::draw(int boundaryRedBlinkPhase) const {
     init_pair(6, COLOR_MAGENTA, COLOR_MAGENTA); // 게이트
     init_pair(7, COLOR_GREEN, COLOR_GREEN);    // Growth 아이템
     init_pair(8, COLOR_RED, COLOR_RED);      // Poison 아이템
-    init_pair(13, COLOR_CYAN, COLOR_CYAN);   // 무적 아이템 (밝은 하늘색)
+    init_pair(13, COLOR_BLACK, COLOR_CYAN);   // 무적 아이템 (밝은 하늘색) 실제 화면에서는 빨간 배경에 검정 *
     init_pair(14, COLOR_WHITE, COLOR_BLUE);   // 미스터리 아이템 (파란 배경에 흰 글씨)
     init_pair(17, COLOR_WHITE, COLOR_BLUE);   // 슬로우 존
     init_pair(18, COLOR_BLACK, COLOR_GREEN);  // 패스트 존
@@ -144,10 +144,10 @@ void Map::draw(int boundaryRedBlinkPhase) const {
                     attroff(COLOR_PAIR(8));
                     break;
                 case 11: // 무적 아이템
-                    attron(COLOR_PAIR(13));
-                    mvaddch(y, drawX, ' ');
+                    attron(COLOR_PAIR(13) | A_REVERSE);
+                    mvaddch(y, drawX, '*');
                     mvaddch(y, drawX + 1, ' ');
-                    attroff(COLOR_PAIR(13));
+                    attroff(COLOR_PAIR(13) | A_REVERSE);
                     break;
                 case 12: // 미스터리 아이템
                     attron(COLOR_PAIR(14));
